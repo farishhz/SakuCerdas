@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Phone, Wallet } from 'lucide-react';
+import { User, Mail, Lock, Phone } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -10,9 +10,7 @@ const Register = () => {
       <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 70% 20%, rgba(255,255,255,0.025) 0%, transparent 50%)', pointerEvents: 'none' }} />
       <div className="auth-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Wallet size={14} color="#080808" />
-          </div>
+          <img src="/logo.png" alt="SakuCerdas" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
           <span style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.02em' }}>SakuCerdas</span>
         </div>
         <div className="auth-header">

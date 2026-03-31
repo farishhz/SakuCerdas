@@ -1,12 +1,14 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Target, TrendingUp, History, User, LogOut, Wallet, PiggyBank, ShieldCheck } from 'lucide-react';
+import { Home, Target, TrendingUp, History, User, LogOut, PiggyBank, ShieldCheck } from 'lucide-react';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div className="brand-icon"><Wallet size={18} color="#080808" /></div>
+        <div className="brand-icon" style={{ background: 'transparent', padding: 0 }}>
+          <img src="/logo.png" alt="SakuCerdas" style={{ width: '2.5rem', height: '2.5rem', objectFit: 'contain' }} />
+        </div>
         <span className="brand-title">SakuCerdas</span>
       </div>
       <div className="sidebar-user-card">

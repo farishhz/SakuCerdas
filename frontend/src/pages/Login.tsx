@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Wallet, Loader2, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, Loader2, AlertTriangle } from 'lucide-react';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, firebaseConfigured } from '../lib/firebase';
 
@@ -63,9 +63,7 @@ const Login = () => {
       <div className="auth-card">
         {/* brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Wallet size={14} color="#080808" />
-          </div>
+          <img src="/logo.png" alt="SakuCerdas" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
           <span style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.02em' }}>SakuCerdas</span>
         </div>
 

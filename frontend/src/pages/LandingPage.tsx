@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Wallet, Target, TrendingUp, ShieldCheck, PiggyBank } from 'lucide-react';
+import { ArrowRight, Target, TrendingUp, ShieldCheck, PiggyBank } from 'lucide-react';
 
 const features = [
   { icon: Target, label: 'Target Impian', desc: 'Atur target finansial dan pantau progresnya sampai tercapai.' },
@@ -15,9 +15,7 @@ const LandingPage = () => {
       {/* Nav */}
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 2.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100, background: 'rgba(8,8,8,0.9)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Wallet size={16} color="#080808" />
-          </div>
+          <img src="/logo.png" alt="SakuCerdas" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain' }} />
           <span style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em' }}>SakuCerdas</span>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
