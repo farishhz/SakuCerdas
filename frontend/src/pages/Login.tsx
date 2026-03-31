@@ -22,8 +22,25 @@ const Login = () => {
     }
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard');
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      
+      const response = await fetch('http://localhost:8000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: result.user.email,
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        localStorage.setItem('sakuToken', data.token);
+        localStorage.setItem('sakuUser', JSON.stringify(data.user));
+        navigate('/dashboard');
+      } else {
+        setError('Gagal mendapatkan akses dari server lokal.');
+      }
     } catch {
       setError('Email atau kata sandi salah.');
     } finally {
@@ -40,10 +57,32 @@ const Login = () => {
     }
     setGoogleLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      navigate('/dashboard');
-    } catch {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      const response = await fetch('http://localhost:8000/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        localStorage.setItem('sakuToken', data.token);
+        localStorage.setItem('sakuUser', JSON.stringify(data.user));
+
+        navigate('/dashboard');
+      } else {
+        setError('Gagal sinkronisasi dengan server database.');
+      }
+    } catch (err) {
       setError('Login Google gagal. Coba lagi.');
+      console.error(err);
     } finally {
       setGoogleLoading(false);
     }
