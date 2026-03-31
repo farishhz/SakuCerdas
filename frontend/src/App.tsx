@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import TargetImpian from './pages/TargetImpian';
-import SimulasiInvestasi from './pages/SimulasiInvestasi';
-import Riwayat from './pages/Riwayat';
-import Profile from './pages/Profile';
-import Budget from './pages/Budget';
-import DanaDarurat from './pages/DanaDarurat';
-import Sidebar from './components/Sidebar';
-import BottomNav from './components/BottomNav';
+
+// Lazy-load every page so one bad module can't crash the whole app
+const LandingPage      = lazy(() => import('./pages/LandingPage'));
+const Login            = lazy(() => import('./pages/Login'));
+const Register         = lazy(() => import('./pages/Register'));
+const Dashboard        = lazy(() => import('./pages/Dashboard'));
+const TargetImpian     = lazy(() => import('./pages/TargetImpian'));
+const SimulasiInvestasi = lazy(() => import('./pages/SimulasiInvestasi'));
+const Riwayat          = lazy(() => import('./pages/Riwayat'));
+const Profile          = lazy(() => import('./pages/Profile'));
+const Budget           = lazy(() => import('./pages/Budget'));
+const DanaDarurat      = lazy(() => import('./pages/DanaDarurat'));
+const Sidebar          = lazy(() => import('./components/Sidebar'));
+const BottomNav        = lazy(() => import('./components/BottomNav'));
+
+const PageLoader = () => (
+  <div style={{
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    minHeight: '100vh', background: '#080808',
+  }}>
+    <div style={{
+      width: '32px', height: '32px', border: '2px solid rgba(255,255,255,0.1)',
+      borderTopColor: 'white', borderRadius: '50%',
+      animation: 'spin 0.8s linear infinite',
+    }} />
+  </div>
+);
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="app-container">
@@ -26,19 +41,21 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => (
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<AuthLayout><Dashboard /></AuthLayout>} />
-        <Route path="/target-impian" element={<AuthLayout><TargetImpian /></AuthLayout>} />
-        <Route path="/simulasi-investasi" element={<AuthLayout><SimulasiInvestasi /></AuthLayout>} />
-        <Route path="/riwayat" element={<AuthLayout><Riwayat /></AuthLayout>} />
-        <Route path="/profile" element={<AuthLayout><Profile /></AuthLayout>} />
-        <Route path="/budget" element={<AuthLayout><Budget /></AuthLayout>} />
-        <Route path="/dana-darurat" element={<AuthLayout><DanaDarurat /></AuthLayout>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/"                    element={<LandingPage />} />
+          <Route path="/login"               element={<Login />} />
+          <Route path="/register"            element={<Register />} />
+          <Route path="/dashboard"           element={<AuthLayout><Dashboard /></AuthLayout>} />
+          <Route path="/target-impian"       element={<AuthLayout><TargetImpian /></AuthLayout>} />
+          <Route path="/simulasi-investasi"  element={<AuthLayout><SimulasiInvestasi /></AuthLayout>} />
+          <Route path="/riwayat"             element={<AuthLayout><Riwayat /></AuthLayout>} />
+          <Route path="/profile"             element={<AuthLayout><Profile /></AuthLayout>} />
+          <Route path="/budget"              element={<AuthLayout><Budget /></AuthLayout>} />
+          <Route path="/dana-darurat"        element={<AuthLayout><DanaDarurat /></AuthLayout>} />
+          <Route path="*"                    element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }
