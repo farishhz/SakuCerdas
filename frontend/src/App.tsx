@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { supabase } from './lib/supabase';
 
 // Lazy-load every page so one bad module can't crash the whole app
 const LandingPage      = lazy(() => import('./pages/LandingPage'));
@@ -28,17 +29,50 @@ const PageLoader = () => (
   </div>
 );
 
-const AuthLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="app-container">
-    <div className="content-wrapper">
-      <Sidebar />
-      <main className="main-content">{children}</main>
+const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate('/login', { replace: true });
+      }
+      setLoading(false);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!session) {
+          navigate('/login', { replace: true });
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  if (loading) return <PageLoader />;
+
+  return (
+    <div className="app-container">
+      <div className="content-wrapper">
+        <Sidebar />
+        <main className="main-content">{children}</main>
+      </div>
+      <BottomNav />
     </div>
-    <BottomNav />
-  </div>
-);
+  );
+};
 
 function App() {
+  React.useEffect(() => {
+    const defaultTheme = localStorage.getItem('theme') || 'sakucerdas';
+    document.documentElement.setAttribute('data-theme', defaultTheme);
+  }, []);
+
   return (
     <Router>
       <Suspense fallback={<PageLoader />}>

@@ -1,8 +1,40 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Target, TrendingUp, History, User, LogOut, PiggyBank, ShieldCheck } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<{full_name: string, level: string} | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from('profiles').select('full_name, level').eq('id', user.id).single()
+          .then(({ data }) => setProfile(data));
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        supabase.from('profiles').select('full_name, level').eq('id', session.user.id).single()
+          .then(({ data }) => setProfile(data));
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -12,10 +44,10 @@ const Sidebar = () => {
         <span className="brand-title">SakuCerdas</span>
       </div>
       <div className="sidebar-user-card">
-        <div className="sidebar-avatar">JD</div>
+        <div className="sidebar-avatar">{getInitials(profile?.full_name)}</div>
         <div className="sidebar-user-info">
-          <p>John Doe</p>
-          <p>Hemat Ranger · Lv.2</p>
+          <p>{profile?.full_name || 'Pengguna Baru'}</p>
+          <p>{profile?.level || 'Newbie'}</p>
         </div>
       </div>
       <nav className="sidebar-nav">
@@ -44,8 +76,9 @@ const Sidebar = () => {
           <User size={16} /><span>Profil Saya</span>
         </NavLink>
       </nav>
-      <div className="sidebar-footer">
-        <button onClick={() => navigate('/')} className="logout-btn">
+      <div className="sidebar-footer" style={{ padding: '0.5rem 0.5rem 1rem 0.5rem', borderTop: '1px solid var(--border)' }}>
+        <ThemeToggle />
+        <button onClick={() => navigate('/')} className="logout-btn" style={{ marginTop: '0.5rem', width: 'auto', margin: '0 0.5rem' }}>
           <LogOut size={15} /><span>Keluar</span>
         </button>
       </div>

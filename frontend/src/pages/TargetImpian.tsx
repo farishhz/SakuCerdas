@@ -1,40 +1,81 @@
-import { useState } from 'react';
-import { PlusCircle, Target, CheckCircle, Trash2 } from 'lucide-react';
-
-const initTargets = [
-  { id: 1, name: 'Beli IEM Baru', current: 400000, target: 500000 },
-  { id: 2, name: 'Rakit Home Server', current: 1500000, target: 5000000 },
-  { id: 3, name: 'Dana Darurat', current: 8000000, target: 10000000 },
-];
+import { useState, useEffect } from 'react';
+import { PlusCircle, Target as TargetIcon, CheckCircle, Trash2 } from 'lucide-react';
+import { targetService } from '../lib/services';
+import type { Target } from '../lib/supabase';
+import CurrencyInput from '../components/CurrencyInput';
 
 const TargetImpian = () => {
-  const [targets, setTargets] = useState(initTargets);
-  const [modal, setModal] = useState(false);
+  const [targets, setTargets]   = useState<Target[]>([]);
+  const [loading, setLoading]   = useState(true);
+  
+  const [modal, setModal]       = useState(false);
   const [addModal, setAddModal] = useState(false);
-  const [selected, setSelected] = useState<null | typeof initTargets[0]>(null);
-  const [addAmt, setAddAmt] = useState(50000);
-  const [newName, setNewName] = useState('');
+  const [selected, setSelected] = useState<Target | null>(null);
+  
+  const [addAmt, setAddAmt]     = useState(50000);
+  const [newName, setNewName]   = useState('');
   const [newTarget, setNewTarget] = useState(1000000);
 
-  const pct = (t: typeof initTargets[0]) => Math.min(Math.round((t.current / t.target) * 100), 100);
-
-  const openAdd = (t: typeof initTargets[0]) => { setSelected(t); setModal(true); };
-  const handleAdd = () => {
-    if (!selected) return;
-    setTargets(ts => ts.map(t => t.id === selected.id ? { ...t, current: Math.min(t.current + addAmt, t.target) } : t));
-    setModal(false);
+  const fetchTargets = async () => {
+    try {
+      setLoading(true);
+      const data = await targetService.getAll();
+      setTargets(data || []);
+    } catch (err) {
+      console.error('Failed to fetch targets:', err);
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleCreate = () => {
+
+  useEffect(() => {
+    fetchTargets();
+  }, []);
+
+  const pct = (t: Target) => Math.min(Math.round((t.current_amount / t.target_amount) * 100), 100);
+
+  const openAdd = (t: Target) => { setSelected(t); setModal(true); setAddAmt(50000); };
+  
+  const handleAdd = async () => {
+    if (!selected || addAmt <= 0) return;
+    try {
+      await targetService.deposit(selected.id, addAmt, 'Deposit manual UI');
+      setModal(false);
+      fetchTargets();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menambah saldo');
+    }
+  };
+
+  const handleCreate = async () => {
     if (!newName || newTarget <= 0) return;
-    setTargets(ts => [...ts, { id: Date.now(), name: newName, current: 0, target: newTarget }]);
-    setNewName(''); setNewTarget(1000000); setAddModal(false);
+    try {
+      await targetService.create({ name: newName, target_amount: newTarget });
+      setNewName(''); setNewTarget(1000000); setAddModal(false);
+      fetchTargets();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal membuat target');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Hapus target ini?')) return;
+    try {
+      await targetService.delete(id);
+      fetchTargets();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menghapus target');
+    }
   };
 
   return (
     <div className="animate-enter pb-8">
       <div className="top-header">
         <div>
-          <div className="header-badge"><Target size={12} /> {targets.length} Target Aktif</div>
+          <div className="header-badge"><TargetIcon size={12} /> {targets.length} Target Aktif</div>
           <h1>Target Impian</h1>
           <p>Pantau progres menuju impian finansialmu.</p>
         </div>
@@ -43,60 +84,75 @@ const TargetImpian = () => {
         </button>
       </div>
 
-      <div className="dashboard-grid">
-        {targets.map(t => {
-          const p = pct(t);
-          const done = p >= 100;
-          return (
-            <div key={t.id} className="glass-card" style={done ? { borderColor: 'rgba(34,197,94,0.25)' } : {}}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
-                <div>
-                  <div className="card-title">Target</div>
-                  <div style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>{t.name}</div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    Rp{t.current.toLocaleString('id-ID')} / Rp{t.target.toLocaleString('id-ID')}
+      {loading ? (
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat target...</div>
+      ) : targets.length === 0 ? (
+        <div className="glass-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+          <TargetIcon size={40} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />
+          <h3 style={{ marginBottom: '0.5rem' }}>Belum Ada Target</h3>
+          <p className="text-muted" style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>Punya impian barang atau liburan? Yuk mulai target nabung pertamamu!</p>
+          <button className="btn btn-primary" style={{ margin: '0 auto' }} onClick={() => setAddModal(true)}>
+             Mulai Buat Target
+          </button>
+        </div>
+      ) : (
+        <div className="dashboard-grid">
+          {targets.map(t => {
+            const p = pct(t);
+            const done = p >= 100 || t.is_completed;
+            return (
+              <div key={t.id} className="glass-card" style={done ? { borderColor: 'rgba(34,197,94,0.25)' } : {}}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                  <div>
+                    <div className="card-title">Target</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>{t.name}</div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
+                    </div>
                   </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {done && <div className="icon-box bg-success"><CheckCircle size={14} /></div>}
+                    <div className="card-icon bg-dim" style={{ width: '2.5rem', height: '2.5rem' }}>
+                      <TargetIcon size={15} />
+                    </div>
+                  </div>
+                </div>
+                <div className="progress-header">
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Progress</span>
+                  <span style={{ fontWeight: 700, color: done ? 'var(--success)' : 'var(--text)' }}>{p}%</span>
+                </div>
+                <div className="progress-container" style={{ marginBottom: '1.25rem' }}>
+                  <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${p}%` }} />
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {done && <div className="icon-box bg-success"><CheckCircle size={14} /></div>}
-                  <div className="card-icon bg-dim" style={{ width: '2.5rem', height: '2.5rem' }}>
-                    <Target size={15} />
-                  </div>
+                  {!done && (
+                    <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }} onClick={() => openAdd(t)}>
+                      <PlusCircle size={14} /> Nabung
+                    </button>
+                  )}
+                  <button className="btn btn-danger" style={{ padding: '0.5rem 0.75rem', flex: done ? 1 : 'unset' }} onClick={() => handleDelete(t.id)}>
+                    <Trash2 size={14} /> {done && 'Hapus'}
+                  </button>
                 </div>
               </div>
-              <div className="progress-header">
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Progress</span>
-                <span style={{ fontWeight: 700, color: done ? 'var(--success)' : 'var(--text)' }}>{p}%</span>
-              </div>
-              <div className="progress-container" style={{ marginBottom: '1.25rem' }}>
-                <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${p}%` }} />
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }} onClick={() => openAdd(t)}>
-                  <PlusCircle size={14} /> Tambah
-                </button>
-                <button className="btn btn-danger" style={{ padding: '0.5rem 0.75rem' }} onClick={() => setTargets(ts => ts.filter(x => x.id !== t.id))}>
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Add saldo modal */}
       {modal && selected && (
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-title">Tambah Saldo</div>
+            <div className="modal-title">Nabung Cepat</div>
             <div className="modal-desc">Target: <strong>{selected.name}</strong></div>
             <div className="input-group">
               <label className="input-label">Nominal (Rp)</label>
-              <div className="input-wrapper"><input type="number" className="input-field" value={addAmt} onChange={e => setAddAmt(+e.target.value)} /></div>
+              <div className="input-wrapper"><CurrencyInput className="input-field" value={addAmt as number} onChange={(val) => setAddAmt(val as number || 0)} /></div>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setModal(false)}>Batal</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd}>Simpan</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd}>Simpan Tabungan</button>
             </div>
           </div>
         </div>
@@ -109,12 +165,12 @@ const TargetImpian = () => {
             <div className="modal-title">Buat Target Baru</div>
             <div className="modal-desc">Tentukan nama dan nominal target yang ingin dicapai.</div>
             <div className="input-group">
-              <label className="input-label">Nama Target</label>
-              <div className="input-wrapper"><input type="text" className="input-field" placeholder="e.g. Laptop Gaming" value={newName} onChange={e => setNewName(e.target.value)} /></div>
+              <label className="input-label">Nama Target (Impian)</label>
+              <div className="input-wrapper"><input type="text" className="input-field" placeholder="e.g. Dana Umroh" value={newName} onChange={e => setNewName(e.target.value)} /></div>
             </div>
             <div className="input-group">
               <label className="input-label">Nominal Target (Rp)</label>
-              <div className="input-wrapper"><input type="number" className="input-field" value={newTarget} onChange={e => setNewTarget(+e.target.value)} /></div>
+              <div className="input-wrapper"><CurrencyInput className="input-field" value={newTarget as number} onChange={(val) => setNewTarget(val as number || 0)} /></div>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setAddModal(false)}>Batal</button>

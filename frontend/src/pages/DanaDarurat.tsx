@@ -1,23 +1,113 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, ArrowRight, CheckCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { targetService } from '../lib/services';
+import CurrencyInput from '../components/CurrencyInput';
 
 const DanaDarurat = () => {
+  const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<'form' | 'result'>('form');
+  
   const [married, setMarried] = useState('single');
   const [tanggungan, setTanggungan] = useState(0);
   const [pengeluaran, setPengeluaran] = useState(3000000);
   const [result, setResult] = useState({ multiplier: 0, amount: 0 });
 
-  const hitung = () => {
+  useEffect(() => {
+    const fetchExisting = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('emergency_fund')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (data && !error) {
+          setMarried(data.marital_status);
+          setTanggungan(data.dependants);
+          setPengeluaran(data.monthly_expenses);
+          setResult({
+            multiplier: data.multiplier,
+            amount: data.target_amount
+          });
+          setStep('result');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExisting();
+  }, []);
+
+  const hitung = async () => {
     let multiplier = 3;
     if (married === 'married') multiplier += 3;
     multiplier += tanggungan;
     multiplier = Math.min(multiplier, 12);
-    setResult({ multiplier, amount: pengeluaran * multiplier });
-    setStep('result');
+    
+    const amount = pengeluaran * multiplier;
+    setResult({ multiplier, amount });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      // Upsert
+      const payload = {
+        user_id: user.id,
+        marital_status: married,
+        dependants: tanggungan,
+        monthly_expenses: pengeluaran,
+        multiplier,
+        target_amount: amount,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Check if exists first for simple update (or onConflict upsert)
+      const { data: existing } = await supabase
+        .from('emergency_fund')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (existing) {
+        await supabase.from('emergency_fund').update(payload).eq('id', existing.id);
+      } else {
+        await supabase.from('emergency_fund').insert(payload);
+      }
+
+      setStep('result');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menyimpan perhitungan');
+    }
+  };
+
+  const handleCreateTarget = async () => {
+    if (result.amount <= 0) return;
+    try {
+      await targetService.create({ name: 'Dana Darurat', target_amount: result.amount });
+      alert('Target Dana Darurat berhasil dibuat di halaman Target Impian!');
+    } catch (err) {
+      console.error(err);
+      alert('Gagal membuat Target Impian. Mungkin target serupa sudah ada.');
+    }
   };
 
   const fmt = (v: number) => `Rp${v.toLocaleString('id-ID')}`;
+
+  if (loading) {
+    return (
+      <div className="animate-enter pb-8">
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat data kalkulasi...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-enter pb-8">
@@ -56,7 +146,7 @@ const DanaDarurat = () => {
             <div className="input-group">
               <label className="input-label">Pengeluaran Rutin / Bulan (Rp)</label>
               <div className="input-wrapper">
-                <input type="number" className="input-field" value={pengeluaran} onChange={e => setPengeluaran(+e.target.value)} />
+                <CurrencyInput className="input-field" value={pengeluaran as number} onChange={(val) => setPengeluaran(val as number || 0)} />
               </div>
             </div>
 
@@ -91,7 +181,7 @@ const DanaDarurat = () => {
             <div className="divider" />
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setStep('form')}>← Hitung Ulang</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => alert('Target dana darurat berhasil dibuat!')}>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleCreateTarget}>
                 Jadikan Target Impian
               </button>
             </div>

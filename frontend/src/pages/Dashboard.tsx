@@ -1,109 +1,104 @@
 import { useState, useEffect } from 'react';
 import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { targetService, transactionService, budgetService } from '../lib/services';
+import CurrencyInput from '../components/CurrencyInput';
 
 const Dashboard = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [nabungAmt, setNabungAmt] = useState(250000);
+  const [modalOpen, setModalOpen]         = useState(false);
+  const [nabungAmt, setNabungAmt]         = useState<number | ''>('');
+  const [selectedTarget, setSelectedTarget] = useState<any>(null);
+  
+  const [userName, setUserName]           = useState('User');
+  const [targets, setTargets]             = useState<any[]>([]);
+  const [budgetAlerts, setBudgetAlerts]   = useState<any[]>([]);
+  const [summary, setSummary]             = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
+  const [loading, setLoading]             = useState(true);
 
-  // State untuk menyimpan data asli dari database
-  const [userName, setUserName] = useState('User');
-  const [targets, setTargets] = useState<any[]>([]);
-  const [budgets, setBudgets] = useState<any[]>([]);
-  const [totalSaldo, setTotalSaldo] = useState(0);
-  const [nearestTarget, setNearestTarget] = useState<any>(null);
-
-  // Fungsi untuk menarik data dari Backend Galen
-  const fetchDashboardData = async () => {
+  const fetchAll = async () => {
     try {
-      const token = localStorage.getItem('sakuToken');
-      const userStr = localStorage.getItem('sakuUser');
-      
-      if (userStr) {
-        setUserName(JSON.parse(userStr).name.split(' ')[0]); // Ambil nama panggilan aja
+      setLoading(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+      if (profile?.full_name) setUserName(profile.full_name.split(' ')[0]);
+
+      const s = await transactionService.getSummary();
+      setSummary(s);
+
+      // Ambil SEMUA target impian
+      const allTargets = await targetService.getAll();
+      if (allTargets && allTargets.length > 0) {
+        // Sort by progress for slightly better visual priority
+        const sorted = [...allTargets].sort((a, b) => {
+          const pctA = a.current_amount / a.target_amount;
+          const pctB = b.current_amount / b.target_amount;
+          return pctB - pctA;
+        });
+        setTargets(sorted);
+      } else {
+        setTargets([]);
       }
 
-      if (!token) return;
+      // Ambil budget alerts
+      const budgets = await budgetService.getAll();
+      if (budgets) {
+        const now = new Date();
+        const expenses = await transactionService.getAll({
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+          type: 'expense',
+        });
 
-      // 1. Ambil data Tabungan (Targets)
-      const resTargets = await fetch('http://localhost:8000/targets', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const dataTargets = await resTargets.json();
+        const alerts = budgets.map((b: any) => {
+          const spent = expenses
+            ?.filter((t: any) => t.category_id === b.category_id)
+            .reduce((sum: number, t: any) => sum + t.amount, 0) ?? 0;
+          return { ...b, spent, pct: Math.round((spent / b.limit_amount) * 100) };
+        }).filter((b: any) => b.pct >= 80);
 
-      if (dataTargets.status === 'success') {
-        const fetchedTargets = dataTargets.data;
-        setTargets(fetchedTargets);
-
-        // Hitung total saldo dari semua tabungan
-        const total = fetchedTargets.reduce((sum: number, t: any) => sum + t.currentAmount, 0);
-        setTotalSaldo(total);
-
-        // Cari target yang paling dekat pencapaiannya (persentase tertinggi)
-        if (fetchedTargets.length > 0) {
-          const sortedTargets = [...fetchedTargets].sort((a, b) => {
-            const pctA = a.currentAmount / a.targetAmount;
-            const pctB = b.currentAmount / b.targetAmount;
-            return pctB - pctA; // Urutkan dari persentase terbesar
-          });
-          setNearestTarget(sortedTargets[0]);
-        }
+        setBudgetAlerts(alerts);
       }
-
-      // 2. Ambil data Budget
-      const resBudgets = await fetch('http://localhost:8000/budgets', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const dataBudgets = await resBudgets.json();
-      
-      if (dataBudgets.status === 'success') {
-        setBudgets(dataBudgets.data);
-      }
-
-    } catch (error) {
-      console.error("Gagal mengambil data dashboard:", error);
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Jalankan fetch saat halaman pertama kali dimuat
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
 
-  // Fungsi eksekusi Nabung Kilat ke Backend
   const handleNabungKilat = async () => {
-    if (!nearestTarget) return alert('Buat target impian dulu ya!');
-    
+    if (!selectedTarget) return alert('Pilih target impian dulu ya!');
+    if (!nabungAmt || nabungAmt <= 0) return alert('Masukkan nominal yang valid!');
     try {
-      const token = localStorage.getItem('sakuToken');
-      const response = await fetch('http://localhost:8000/transactions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          targetId: nearestTarget._id,
-          amount: nabungAmt,
-          description: 'Nabung Kilat dari Dashboard'
-        })
-      });
-
-      const data = await response.json();
-      if (data.status === 'success') {
-        alert(`Yeay! Berhasil nabung Rp${nabungAmt.toLocaleString('id-ID')} buat ${nearestTarget.title}!`);
-        setModalOpen(false);
-        fetchDashboardData(); // Refresh data supaya grafik langsung naik!
-      }
-    } catch (error) {
-      console.error("Gagal nabung:", error);
+      await targetService.deposit(selectedTarget.id, nabungAmt as number, 'Nabung Kilat dari Dashboard');
+      alert(`Berhasil nabung Rp${Number(nabungAmt).toLocaleString('id-ID')} untuk ${selectedTarget.name}!`);
+      setModalOpen(false);
+      setNabungAmt('');
+      fetchAll();
+    } catch (err) {
+      console.error('Nabung kilat error:', err);
+      alert('Gagal nabung. Coba lagi.');
     }
   };
 
-  // --- Data Stats Dinamis (Pemasukan/Pengeluaran sementara statis sampai ada fitur rekap) ---
+  const openNabung = (t: any) => {
+    setSelectedTarget(t);
+    setNabungAmt(50000);
+    setModalOpen(true);
+  };
+
   const stats = [
-    { label: 'Total Saldo', value: `Rp${totalSaldo.toLocaleString('id-ID')}`, icon: Wallet, change: '+12%', up: true },
-    { label: 'Pemasukan Bulan Ini', value: 'Rp8.000.000', icon: ArrowDownRight, change: '+0%', up: true },
-    { label: 'Pengeluaran Bulan Ini', value: 'Rp1.188.000', icon: ArrowUpRight, change: '-5%', up: false },
+    { label: 'Saldo Bersih', value: `Rp${summary.balance.toLocaleString('id-ID')}`, icon: Wallet, change: '+12%', up: true },
+    { label: 'Pemasukan Bulan Ini', value: `Rp${summary.totalIncome.toLocaleString('id-ID')}`, icon: ArrowDownRight, change: '+0%', up: true },
+    { label: 'Pengeluaran Bulan Ini', value: `Rp${summary.totalExpense.toLocaleString('id-ID')}`, icon: ArrowUpRight, change: '-5%', up: false },
   ];
 
   return (
@@ -111,13 +106,9 @@ const Dashboard = () => {
       <div className="top-header">
         <div>
           <div className="header-badge"><Zap size={12} /> Overview</div>
-          {/* NAMA USER OTOMATIS */}
-          <h1>Halo, {userName}! 👋</h1>
+          <h1>Halo, {loading ? '...' : userName}! 👋</h1>
           <p>Ringkasan keuangan kamu per hari ini.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
-          <Zap size={15} fill="currentColor" /> Nabung Kilat
-        </button>
       </div>
 
       {/* Stats */}
@@ -126,81 +117,86 @@ const Dashboard = () => {
           <div key={s.label} className="glass-card">
             <div className="card-header" style={{ marginBottom: '1rem' }}>
               <div className="card-icon bg-dim"><s.icon size={18} /></div>
-              <div style={{ flex: 1 }}>
-                <div className="card-title">{s.label}</div>
-              </div>
+              <div style={{ flex: 1 }}><div className="card-title">{s.label}</div></div>
               <span className="tag" style={{ background: s.up ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: s.up ? '#22C55E' : '#EF4444' }}>{s.change}</span>
             </div>
-            <div className="card-value">{s.value}</div>
+            <div className="card-value">{loading ? '...' : s.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Target Terdekat (Otomatis ngambil dari MongoDB) */}
-      <div className="glass-card" style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-          <div>
-            <div className="card-title">Target Terdekat</div>
-            <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>
-              {nearestTarget ? nearestTarget.title : 'Belum ada target'}
-            </h3>
-          </div>
-          <div className="card-icon bg-dim"><TargetIcon size={18} /></div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', alignItems: 'start' }}>
         
-        {nearestTarget ? (
-          <>
-            <div className="progress-header">
-              <span className="text-muted" style={{ fontSize: '0.82rem' }}>
-                Rp{nearestTarget.currentAmount.toLocaleString('id-ID')} / Rp{nearestTarget.targetAmount.toLocaleString('id-ID')}
-              </span>
-              <span style={{ fontWeight: 700 }}>
-                {Math.round((nearestTarget.currentAmount / nearestTarget.targetAmount) * 100)}%
-              </span>
-            </div>
-            <div className="progress-container">
-              <div 
-                className="progress-fill success" 
-                style={{ width: `${Math.min(100, Math.round((nearestTarget.currentAmount / nearestTarget.targetAmount) * 100))}%` }} 
-              />
-            </div>
-          </>
-        ) : (
-          <p className="text-muted" style={{ fontSize: '0.85rem' }}>Yuk buat target impian pertamamu di menu Target!</p>
-        )}
-      </div>
-
-      {/* Budget Alerts (Dinamis) */}
-      {budgets.length > 0 && (
-        <div className="glass-card" style={{ borderColor: 'rgba(239,68,68,0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-            <div className="card-icon bg-danger"><PiggyBank size={16} /></div>
+        {/* Kolom Kiri: Target Impian */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Status Budget</div>
-              <div className="text-muted" style={{ fontSize: '0.8rem' }}>Pantau pengeluaranmu bulan ini.</div>
+              <div className="card-title">Daftar Target Aktif</div>
+              <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>Target Impian</h3>
             </div>
+            <div className="card-icon bg-dim"><TargetIcon size={18} /></div>
           </div>
-          {budgets.map((b) => {
-            const usedPercentage = Math.round((b.spentAmount / b.limitAmount) * 100);
-            return (
-              <div key={b._id} style={{ marginBottom: '0.875rem' }}>
+          
+          {targets.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {targets.map(t => {
+                const pct = Math.min(100, Math.round((t.current_amount / t.target_amount) * 100));
+                const done = pct >= 100 || t.is_completed;
+                return (
+                  <div key={t.id} style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t.name}</span>
+                       {!done && (
+                         <button className="btn btn-ghost" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => openNabung(t)}>
+                           <Zap size={12} /> Nabung
+                         </button>
+                       )}
+                    </div>
+                    <div className="progress-header" style={{ marginTop: '0.5rem' }}>
+                      <span className="text-muted" style={{ fontSize: '0.82rem' }}>
+                        Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
+                      </span>
+                      <span style={{ fontWeight: 700, color: done ? 'var(--success)' : '' }}>{pct}%</span>
+                    </div>
+                    <div className="progress-container">
+                      <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-muted" style={{ fontSize: '0.85rem' }}>Yuk buat target impian pertamamu di menu Target!</p>
+          )}
+        </div>
+
+        {/* Kolom Kanan: Budget Alerts */}
+        {budgetAlerts.length > 0 && (
+          <div className="glass-card" style={{ borderColor: 'rgba(239,68,68,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div className="card-icon bg-danger"><PiggyBank size={16} /></div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Peringatan Budget!</div>
+                <div className="text-muted" style={{ fontSize: '0.8rem' }}>Beberapa kategori mendekati atau melebihi limit.</div>
+              </div>
+            </div>
+            {budgetAlerts.map((b) => (
+              <div key={b.id} style={{ marginBottom: '0.875rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
                 <div className="progress-header">
-                  <span style={{ fontSize: '0.82rem' }}>{b.category}</span>
-                  <span className={usedPercentage >= 100 ? 'text-danger' : 'text-warning'} style={{ fontWeight: 700 }}>
-                    {usedPercentage}%
-                  </span>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{b.categories?.name ?? 'Kategori'}</span>
+                  <span className={b.pct > 100 ? 'text-danger' : 'text-warning'} style={{ fontWeight: 700 }}>{b.pct}%</span>
                 </div>
                 <div className="progress-container">
-                  <div className={`progress-fill ${usedPercentage >= 100 ? 'danger' : 'warning'}`} style={{ width: `${Math.min(usedPercentage, 100)}%` }} />
+                  <div className={`progress-fill ${b.pct > 100 ? 'danger' : 'warning'}`} style={{ width: `${Math.min(b.pct, 100)}%` }} />
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                  Rp{b.spentAmount.toLocaleString('id-ID')} / Rp{b.limitAmount.toLocaleString('id-ID')}
+                  Rp{b.spent.toLocaleString('id-ID')} / Rp{b.limit_amount.toLocaleString('id-ID')}
                 </div>
               </div>
-            )
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Nabung Kilat Modal */}
       {modalOpen && (
@@ -208,12 +204,12 @@ const Dashboard = () => {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-title">⚡ Nabung Kilat</div>
             <div className="modal-desc">
-              Masukkan dana cepat untuk target terdekatmu ({nearestTarget?.title || 'Target'}).
+              Masukkan dana cepat untuk <strong>{selectedTarget?.name ?? 'Target'}</strong>.
             </div>
             <div className="input-group" style={{ marginTop: '1rem' }}>
-              <label className="input-label">Nominal Nabung (Rp)</label>
+              <label className="input-label">Nominal (Rp)</label>
               <div className="input-wrapper">
-                <input type="number" className="input-field" value={nabungAmt} onChange={e => setNabungAmt(+e.target.value)} />
+                <CurrencyInput className="input-field" value={nabungAmt} onChange={setNabungAmt} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
@@ -226,5 +222,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;
