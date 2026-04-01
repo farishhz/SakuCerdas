@@ -83,9 +83,9 @@ const Dashboard = () => {
       setModalOpen(false);
       setNabungAmt('');
       fetchAll();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Nabung kilat error:', err);
-      alert('Gagal nabung. Coba lagi.');
+      alert(err.message || 'Gagal nabung. Coba lagi.');
     }
   };
 

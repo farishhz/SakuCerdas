@@ -42,9 +42,9 @@ const TargetImpian = () => {
       await targetService.deposit(selected.id, addAmt, 'Deposit manual UI');
       setModal(false);
       fetchTargets();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal menambah saldo');
+      alert(err.message || 'Gagal menambah saldo');
     }
   };
 

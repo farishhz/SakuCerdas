@@ -164,24 +164,51 @@ export const targetService = {
 
   async deposit(targetId: string, amount: number, note?: string) {
     const user = await authService.getCurrentUser();
+    if (!user) throw new Error('User tidak ditemukan');
 
-    // Tambah deposit record
-    await supabase.from('target_deposits').insert({
-      target_id: targetId,
-      user_id: user!.id,
-      amount,
-      note: note ?? null,
-    });
+    // 1. Cek saldo utama melalui summary transaksi
+    const summary = await transactionService.getSummary();
+    if (amount > summary.balance) {
+      throw new Error(`Saldo tidak cukup! Saldo Anda Rp${summary.balance.toLocaleString('id-ID')}, sedangkan Anda ingin menabung Rp${amount.toLocaleString('id-ID')}.`);
+    }
 
-    // Update current_amount di targets
+    // 2. Ambil data target untuk deskripsi transaksi
     const { data: target } = await supabase
       .from('targets')
-      .select('current_amount, target_amount')
+      .select('name, current_amount, target_amount')
       .eq('id', targetId)
       .single();
 
-    const newAmount = (target?.current_amount ?? 0) + amount;
-    const isCompleted = newAmount >= (target?.target_amount ?? 0);
+    if (!target) throw new Error('Target tidak ditemukan');
+
+    // 3. Ambil kategori 'Tabungan' (Expense)
+    const { data: categories } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('name', 'Tabungan')
+      .eq('type', 'expense')
+      .single();
+
+    // 4. Catat transaksi pengeluaran otomatis untuk mengurangi saldo dashboard
+    await transactionService.create({
+      type: 'expense',
+      amount: amount,
+      category_id: categories?.id,
+      description: `Nabung: ${target.name}${note ? ` (${note})` : ''}`,
+      date: new Date().toISOString().split('T')[0]
+    });
+
+    // 5. Tambah deposit record ke tabel target_deposits
+    await supabase.from('target_deposits').insert({
+      target_id: targetId,
+      user_id: user.id,
+      amount,
+      note: note ?? `Nabung untuk ${target.name}`,
+    });
+
+    // 6. Update current_amount di targets
+    const newAmount = (target.current_amount ?? 0) + amount;
+    const isCompleted = newAmount >= (target.target_amount ?? 0);
 
     const { data, error } = await supabase
       .from('targets')
