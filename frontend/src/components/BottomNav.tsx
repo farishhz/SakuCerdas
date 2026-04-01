@@ -1,19 +1,24 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Target, TrendingUp, User, PiggyBank } from 'lucide-react';
+import { Home, Target, TrendingUp, User, PiggyBank, History, ShieldCheck } from 'lucide-react';
 
 const BottomNav = () => (
-  <div className="bottom-nav">
-    {[
-      { path: '/dashboard', icon: Home },
-      { path: '/target-impian', icon: Target },
-      { path: '/budget', icon: PiggyBank },
-      { path: '/simulasi-investasi', icon: TrendingUp },
-      { path: '/profile', icon: User },
-    ].map(({ path, icon: Icon }) => (
-      <NavLink key={path} to={path} className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-        <Icon size={20} />
-      </NavLink>
-    ))}
+  <div className="bottom-nav-wrapper">
+    <div className="bottom-nav">
+      {[
+        { path: '/dashboard', icon: Home, label: 'Dasbor' },
+        { path: '/target-impian', icon: Target, label: 'Target' },
+        { path: '/simulasi-investasi', icon: TrendingUp, label: 'Simulasi' },
+        { path: '/riwayat', icon: History, label: 'Riwayat' },
+        { path: '/budget', icon: PiggyBank, label: 'Budget' },
+        { path: '/dana-darurat', icon: ShieldCheck, label: 'Darurat' },
+        { path: '/profile', icon: User, label: 'Profil' },
+      ].map(({ path, icon: Icon, label }) => (
+        <NavLink key={path} to={path} className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
+          <Icon size={20} />
+          <span className="nav-label">{label}</span>
+        </NavLink>
+      ))}
+    </div>
   </div>
 );
 export default BottomNav;

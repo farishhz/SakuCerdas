@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TrendingUp, Calculator } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import CurrencyInput from '../components/CurrencyInput';
 
 const calcCompound = (modal: number, monthly: number, rate: number, years: number) => {
   const monthlyRate = rate / 100 / 12;
@@ -45,14 +46,20 @@ const SimulasiInvestasi = () => {
             <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Parameter Skenario</div>
           </div>
           {[
-            { label: 'Modal Awal (Rp)', val: modal, set: setModal },
-            { label: 'Tabungan Rutin / Bulan (Rp)', val: monthly, set: setMonthly },
-            { label: 'Return / Tahun (%)', val: rate, set: setRate },
-            { label: 'Durasi (Tahun)', val: years, set: setYears },
-          ].map(({ label, val, set }) => (
+            { label: 'Modal Awal (Rp)', val: modal, set: setModal, isCurrency: true },
+            { label: 'Tabungan Rutin / Bulan (Rp)', val: monthly, set: setMonthly, isCurrency: true },
+            { label: 'Return / Tahun (%)', val: rate, set: setRate, isCurrency: false },
+            { label: 'Durasi (Tahun)', val: years, set: setYears, isCurrency: false },
+          ].map(({ label, val, set, isCurrency }) => (
             <div className="input-group" key={label}>
               <label className="input-label">{label}</label>
-              <div className="input-wrapper"><input type="number" className="input-field" value={val} onChange={e => set(+e.target.value)} /></div>
+              <div className="input-wrapper">
+                {isCurrency ? (
+                  <CurrencyInput className="input-field" value={val} onChange={(num) => set(num as number)} />
+                ) : (
+                  <input type="number" className="input-field" value={val} onChange={e => set(+e.target.value)} />
+                )}
+              </div>
             </div>
           ))}
           <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={hitung}>
