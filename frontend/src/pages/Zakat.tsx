@@ -46,7 +46,7 @@ const Zakat = () => {
           </div>
           
           <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem' }}>
-            {loading ? '...' : `Rp${balance.toLocaleString('id-ID')}`}
+            {loading ? '...' : `Rp${(balance || 0).toLocaleString('id-ID')}`}
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             Berdasarkan total saldo bersih di Dashboard SakuCerdas Anda.
@@ -82,7 +82,7 @@ const Zakat = () => {
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', color: isObligated ? 'white' : 'var(--text-muted)' }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem', opacity: 0.8 }}>Zakat yang Harus Ditunaikan</div>
             <div style={{ fontSize: '2.25rem', fontWeight: 900 }}>
-              {loading ? '...' : `Rp${zakatAmount.toLocaleString('id-ID')}`}
+              {loading ? '...' : `Rp${(zakatAmount || 0).toLocaleString('id-ID')}`}
             </div>
             {isObligated && (
               <p style={{ marginTop: '1rem', fontSize: '0.82rem', opacity: 0.9 }}>

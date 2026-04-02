@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Phone, Wallet, AlertCircle } from 'lucide-react';
 import { authService } from '../lib/services';
@@ -11,6 +11,13 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    authService.getCurrentUser().then(user => {
+      if (user) navigate('/dashboard', { replace: true });
+    });
+  }, [navigate]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

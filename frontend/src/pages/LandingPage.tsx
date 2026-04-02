@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../lib/services';
 import { ArrowRight, Target, TrendingUp, ShieldCheck, PiggyBank } from 'lucide-react';
 
 const features = [
@@ -19,6 +21,14 @@ const gradText: React.CSSProperties = {
 
 const LandingPage = () => {
   const navigate = useNavigate();
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    authService.getCurrentUser().then(user => {
+      if (user) navigate('/dashboard', { replace: true });
+    });
+  }, [navigate]);
+
   return (
     <div style={{ minHeight: '100vh', background: '#07040F', color: '#F0EDFF', fontFamily: 'Inter, sans-serif', position: 'relative', overflow: 'hidden' }}>
       {/* ambient glows */}

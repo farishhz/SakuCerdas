@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
+import Zakat from './pages/Zakat';
 
 // Lazy-load every page so one bad module can't crash the whole app
 const LandingPage      = lazy(() => import('./pages/LandingPage'));
@@ -13,7 +14,6 @@ const Riwayat          = lazy(() => import('./pages/Riwayat'));
 const Profile          = lazy(() => import('./pages/Profile'));
 const Budget           = lazy(() => import('./pages/Budget'));
 const DanaDarurat      = lazy(() => import('./pages/DanaDarurat'));
-const Zakat            = lazy(() => import('./pages/Zakat'));
 const Sidebar          = lazy(() => import('./components/Sidebar'));
 const BottomNav        = lazy(() => import('./components/BottomNav'));
 
