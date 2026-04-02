@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// ── Type helpers ──────────────────────────────────────────────
+
 export type Profile = {
   id: string;
   full_name: string;

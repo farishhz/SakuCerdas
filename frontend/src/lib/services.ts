@@ -1,9 +1,9 @@
 import { supabase } from '../lib/supabase';
 
-// ── AUTH ─────────────────────────────────────────────────────
+
 
 export const authService = {
-  /** Register akun baru */
+  
   async register(email: string, password: string, fullName: string, phone?: string) {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -14,15 +14,14 @@ export const authService = {
     });
     if (error) throw error;
     
-    // Pastikan phone tersimpan di tabel profiles juga (fallback karena trigger postgres awal mungkin tidak memuat phone)
+    
     if (data.user && phone) {
       const userId = data.user.id;
       setTimeout(async () => {
         await supabase.from('profiles').update({ phone }).eq('id', userId);
-      }, 1500); // Tunggu trigger PostgreSQL selesai
+      }, 1500); 
     }
 
-    // Award Register Badge
     setTimeout(async () => {
       await profileService.awardBadge('REGISTER');
     }, 2000);
@@ -30,7 +29,6 @@ export const authService = {
     return data;
   },
 
-  /** Login dengan email & password */
   async login(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -38,7 +36,6 @@ export const authService = {
     });
     if (error) throw error;
 
-    // Catat log aktivitas login
     if (data.user) {
       await supabase.from('activity_logs').insert({
         user_id: data.user.id,
@@ -50,7 +47,6 @@ export const authService = {
     return data;
   },
 
-  /** Login dengan Google OAuth */
   async loginWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -62,21 +58,25 @@ export const authService = {
     return data;
   },
 
-  /** Logout */
   async logout() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },
 
-  /** Ambil user yang sedang login */
   async getCurrentUser() {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
     return data.user;
   },
+
+  async deleteAccount() {
+    const { error } = await supabase.rpc('delete_current_user');
+    if (error) throw error;
+    await supabase.auth.signOut();
+  },
 };
 
-// ── PROFILE ──────────────────────────────────────────────────
+
 
 export const profileService = {
   async getProfile(userId: string) {
@@ -100,7 +100,6 @@ export const profileService = {
     return data;
   },
 
-  /** ─────────── GXP & BADGE SYSTEM ─────────── */
   async addXP(amount: number) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -138,7 +137,6 @@ export const profileService = {
   }
 };
 
-// ── TARGETS ──────────────────────────────────────────────────
 
 export const targetService = {
   async getAll() {
@@ -166,13 +164,11 @@ export const targetService = {
     const user = await authService.getCurrentUser();
     if (!user) throw new Error('User tidak ditemukan');
 
-    // 1. Cek saldo utama melalui summary transaksi
     const summary = await transactionService.getSummary();
     if (amount > summary.balance) {
       throw new Error(`Saldo tidak cukup! Saldo Anda Rp${summary.balance.toLocaleString('id-ID')}, sedangkan Anda ingin menabung Rp${amount.toLocaleString('id-ID')}.`);
     }
 
-    // 2. Ambil data target untuk deskripsi transaksi
     const { data: target } = await supabase
       .from('targets')
       .select('name, current_amount, target_amount')
@@ -181,7 +177,6 @@ export const targetService = {
 
     if (!target) throw new Error('Target tidak ditemukan');
 
-    // 3. Ambil kategori 'Tabungan' (Expense)
     const { data: categories } = await supabase
       .from('categories')
       .select('id')
@@ -189,7 +184,6 @@ export const targetService = {
       .eq('type', 'expense')
       .single();
 
-    // 4. Catat transaksi pengeluaran otomatis untuk mengurangi saldo dashboard
     await transactionService.create({
       type: 'expense',
       amount: amount,
@@ -198,7 +192,6 @@ export const targetService = {
       date: new Date().toISOString().split('T')[0]
     });
 
-    // 5. Tambah deposit record ke tabel target_deposits
     await supabase.from('target_deposits').insert({
       target_id: targetId,
       user_id: user.id,
@@ -206,7 +199,6 @@ export const targetService = {
       note: note ?? `Nabung untuk ${target.name}`,
     });
 
-    // 6. Update current_amount di targets
     const newAmount = (target.current_amount ?? 0) + amount;
     const isCompleted = newAmount >= (target.target_amount ?? 0);
 
@@ -233,7 +225,6 @@ export const targetService = {
   },
 };
 
-// ── TRANSACTIONS ─────────────────────────────────────────────
 
 export const transactionService = {
   async getAll(filters?: { month?: number; year?: number; type?: 'income' | 'expense' }) {
@@ -299,7 +290,6 @@ export const transactionService = {
   },
 };
 
-// ── BUDGETS ──────────────────────────────────────────────────
 
 export const budgetService = {
   async getAll() {
@@ -342,7 +332,6 @@ export const budgetService = {
   },
 };
 
-// ── CATEGORIES ───────────────────────────────────────────────
 
 export const categoryService = {
   async getAll(type?: 'income' | 'expense') {
@@ -354,7 +343,6 @@ export const categoryService = {
   },
 };
 
-// ── EMERGENCY FUND ───────────────────────────────────────────
 
 export const emergencyFundService = {
   async get() {
@@ -384,7 +372,6 @@ export const emergencyFundService = {
   },
 };
 
-// ── BADGES ───────────────────────────────────────────────────
 
 export const badgeService = {
   async getMine() {
@@ -403,7 +390,6 @@ export const badgeService = {
   },
 };
 
-// ── ACTIVITY LOGS ────────────────────────────────────────────
 
 export const activityLogService = {
   async getRecent(limit = 5) {

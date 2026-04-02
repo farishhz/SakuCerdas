@@ -10,7 +10,6 @@ const storageBucket     = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 const messagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
 const appId       = import.meta.env.VITE_FIREBASE_APP_ID;
 
-/** True only when all required env vars are present */
 export const firebaseConfigured =
   Boolean(apiKey && authDomain && projectId && storageBucket && messagingSenderId && appId);
 

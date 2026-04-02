@@ -37,6 +37,7 @@ const Profile = () => {
   const [editPhone, setEditPhone] = useState('');
   const [editPw, setEditPw] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -131,6 +132,20 @@ const Profile = () => {
     } catch (err) {
       console.error(err);
       alert('Gagal update kata sandi');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setSaving(true);
+      await authService.deleteAccount();
+      alert('Akun Anda telah berhasil dihapus. Sampai jumpa lagi!');
+      navigate('/login');
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Gagal menghapus akun');
     } finally {
       setSaving(false);
     }
@@ -249,6 +264,16 @@ const Profile = () => {
         <ThemeToggle />
       </div>
 
+      <div style={{ marginTop: '2rem', padding: '0 0.5rem' }}>
+        <button 
+          className="btn btn-ghost" 
+          style={{ width: '100%', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.05)', justifyContent: 'center' }}
+          onClick={() => setDeleteModal(true)}
+        >
+          Hapus Akun Permanen
+        </button>
+      </div>
+
       {/* Edit Profile Modal */}
       {profileModal && (
         <div className="modal-overlay" onClick={() => setProfileModal(false)}>
@@ -298,6 +323,31 @@ const Profile = () => {
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setPwModal(false)}>Batal</button>
               <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSavePassword} disabled={saving}>
                 {saving ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Modal */}
+      {deleteModal && (
+        <div className="modal-overlay" onClick={() => setDeleteModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ borderColor: 'rgba(239,68,68,0.4)' }}>
+            <div className="modal-title" style={{ color: '#EF4444' }}>Hapus Akun Permanen?</div>
+            <div className="modal-desc">
+              Tindakan ini <strong>tidak dapat dibatalkan</strong>. Seluruh data transaksi, target impian, dan pencapaian Anda akan dihapus selamanya dari server SakuCerdas.
+            </div>
+            
+            <div style={{ background: 'rgba(239,68,68,0.08)', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1.5rem', border: '1px solid rgba(239,68,68,0.15)' }}>
+              <p style={{ fontSize: '0.8rem', color: '#EF4444', fontWeight: 600, textAlign: 'center' }}>
+                Apakah Anda yakin ingin meninggalkan SakuCerdas?
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setDeleteModal(false)}>Batal</button>
+              <button className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }} onClick={handleDeleteAccount} disabled={saving}>
+                {saving ? 'Menghapus...' : 'Ya, Hapus Akun'}
               </button>
             </div>
           </div>
