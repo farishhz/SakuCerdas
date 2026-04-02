@@ -5,7 +5,7 @@ import { transactionService, categoryService } from '../lib/services';
 import type { Transaction, Category } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 const COLORS = ['#FFFFFF', '#AAAAAA', '#777777', '#444444', '#222222', '#111111'];
@@ -96,43 +96,48 @@ const Riwayat = () => {
   };
 
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    
-    // Header & Logo
-    doc.setDrawColor(139, 92, 246);
-    doc.setLineWidth(1);
-    doc.line(14, 25, 45, 25); // Underline for "SakuCerdas"
-    
-    doc.setFontSize(22);
-    doc.setTextColor(139, 92, 246); // SakuCerdas Purple
-    doc.setFont('helvetica', 'bold');
-    doc.text('SakuCerdas', 14, 22);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Smart Financial Management', 14, 30);
-    doc.text(`Laporan Transaksi - ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`, 14, 38);
-    doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 43);
-    
-    const tableData = filteredTransactions.map(t => [
-      new Date(t.date).toLocaleDateString('id-ID'),
-      t.description || '-',
-      t.categories?.name || '-',
-      t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
-      `Rp${t.amount.toLocaleString('id-ID')}`
-    ]);
+    try {
+      const doc = new jsPDF();
+      
+      // Header & Logo
+      doc.setDrawColor(139, 92, 246);
+      doc.setLineWidth(1);
+      doc.line(14, 25, 45, 25); // Underline for "SakuCerdas"
+      
+      doc.setFontSize(22);
+      doc.setTextColor(139, 92, 246); // SakuCerdas Purple
+      doc.setFont('helvetica', 'bold');
+      doc.text('SakuCerdas', 14, 22);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Smart Financial Management', 14, 30);
+      doc.text(`Laporan Transaksi - ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`, 14, 38);
+      doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 43);
+      
+      const tableData = filteredTransactions.map(t => [
+        new Date(t.date).toLocaleDateString('id-ID'),
+        t.description || '-',
+        t.categories?.name || '-',
+        t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+        `Rp${t.amount.toLocaleString('id-ID')}`
+      ]);
 
-    (doc as any).autoTable({
-      startY: 50,
-      head: [['Tanggal', 'Keterangan', 'Kategori', 'Tipe', 'Nominal']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [139, 92, 246] },
-      styles: { fontSize: 9 }
-    });
+      autoTable(doc, {
+        startY: 50,
+        head: [['Tanggal', 'Keterangan', 'Kategori', 'Tipe', 'Nominal']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [139, 92, 246] },
+        styles: { fontSize: 9 }
+      });
 
-    doc.save(`SakuCerdas_Laporan_${new Date().getTime()}.pdf`);
+      doc.save(`SakuCerdas_Laporan_${new Date().getTime()}.pdf`);
+    } catch (err) {
+      console.error('PDF Export Error:', err);
+      alert('Gagal membuat PDF. Silakan coba lagi.');
+    }
   };
 
   const handleExportExcel = () => {
