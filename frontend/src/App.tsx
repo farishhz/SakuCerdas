@@ -16,6 +16,10 @@ const Budget           = lazy(() => import('./pages/Budget'));
 const DanaDarurat      = lazy(() => import('./pages/DanaDarurat'));
 const Sidebar          = lazy(() => import('./components/Sidebar'));
 const BottomNav        = lazy(() => import('./components/BottomNav'));
+const RecurringTransactions = lazy(() => import('./pages/RecurringTransactions'));
+const DebtLoans        = lazy(() => import('./pages/DebtLoans'));
+const FinancialHealth  = lazy(() => import('./pages/FinancialHealth'));
+const FinancialCalendar = lazy(() => import('./pages/FinancialCalendar'));
 
 const PageLoader = () => (
   <div style={{
@@ -89,6 +93,10 @@ function App() {
           <Route path="/budget"              element={<AuthLayout><Budget /></AuthLayout>} />
           <Route path="/dana-darurat"        element={<AuthLayout><DanaDarurat /></AuthLayout>} />
           <Route path="/zakat"               element={<AuthLayout><Zakat /></AuthLayout>} />
+          <Route path="/rutin"               element={<AuthLayout><RecurringTransactions /></AuthLayout>} />
+          <Route path="/hutang"              element={<AuthLayout><DebtLoans /></AuthLayout>} />
+          <Route path="/kesehatan"           element={<AuthLayout><FinancialHealth /></AuthLayout>} />
+          <Route path="/kalender"            element={<AuthLayout><FinancialCalendar /></AuthLayout>} />
           <Route path="*"                    element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

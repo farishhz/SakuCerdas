@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank } from 'lucide-react';
+import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { targetService, transactionService, budgetService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
@@ -15,6 +16,7 @@ const Dashboard = () => {
   const [summary, setSummary]             = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
   const [loading, setLoading]             = useState(true);
   const [saving, setSaving]               = useState(false);
+  const [streak, setStreak]               = useState(0);
 
   const fetchAll = async () => {
     try {
@@ -47,6 +49,14 @@ const Dashboard = () => {
         setTargets([]);
       }
 
+      // Ambil Streak
+      const { data: streakData } = await supabase
+        .from('saving_streaks')
+        .select('current_streak')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (streakData) setStreak(streakData.current_streak);
+
       // Ambil budget alerts
       const budgets = await budgetService.getAll();
       if (budgets) {
@@ -66,6 +76,10 @@ const Dashboard = () => {
 
         setBudgetAlerts(alerts);
       }
+
+      // Ambil streak
+      const { data: sData } = await supabase.from('saving_streaks').select('current_streak').eq('user_id', user.id).maybeSingle();
+      if (sData) setStreak(sData.current_streak);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
@@ -106,100 +120,126 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="animate-enter pb-8">
-      <div className="top-header">
-        <div>
-          <div className="header-badge"><Zap size={12} /> Overview</div>
-          <h1>Halo, {loading ? '...' : userName}! 👋</h1>
-          <p>Ringkasan keuangan kamu per hari ini.</p>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="dashboard-grid">
-        {stats.map((s) => (
-          <div key={s.label} className="glass-card">
-            <div className="card-header" style={{ marginBottom: '1rem' }}>
-              <div className="card-icon bg-dim"><s.icon size={18} /></div>
-              <div style={{ flex: 1 }}><div className="card-title">{s.label}</div></div>
-              <span className="tag" style={{ background: s.up ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: s.up ? '#22C55E' : '#EF4444' }}>{s.change}</span>
-            </div>
-            <div className="card-value">{loading ? '...' : s.value}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', alignItems: 'start' }}>
-        
-        {/* Kolom Kiri: Target Impian */}
-        <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+    <>
+      <div className="animate-enter pb-8">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
             <div>
-              <div className="card-title">Daftar Target Aktif</div>
-              <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>Target Impian</h3>
+              <div className="header-badge"><Zap size={12} /> Overview</div>
+              <h1>Halo, {loading ? '...' : userName}! 👋</h1>
+              <p>Ringkasan keuangan kamu per hari ini.</p>
             </div>
-            <div className="card-icon bg-dim"><TargetIcon size={18} /></div>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: 'var(--accent-grad)', padding: '0.6rem 1.25rem', borderRadius: '1.25rem', color: 'white', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 8px 24px rgba(139,92,246,0.25)' }}>
+              <Flame size={20} color="#FFA500" fill="#FFA500" />
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, lineHeight: 1 }}>{streak} Hari</div>
+                <div style={{ fontSize: '0.65rem', opacity: 0.8 }}>Saving Streak! 🔥</div>
+              </div>
+            </div>
           </div>
-          
-          {targets.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {targets.map(t => {
-                const pct = Math.min(100, Math.round((t.current_amount / t.target_amount) * 100));
-                const done = pct >= 100 || t.is_completed;
-                return (
-                  <div key={t.id} style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                       <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t.name}</span>
-                       {!done && (
-                         <button className="btn btn-ghost" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => openNabung(t)}>
-                           <Zap size={12} /> Nabung
-                         </button>
-                       )}
-                    </div>
-                    <div className="progress-header" style={{ marginTop: '0.5rem' }}>
-                      <span className="text-muted" style={{ fontSize: '0.82rem' }}>
-                        Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
-                      </span>
-                      <span style={{ fontWeight: 700, color: done ? 'var(--success)' : '' }}>{pct}%</span>
-                    </div>
-                    <div className="progress-container">
-                      <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+        
+        {/* Stats */}
+        <div className="dashboard-grid">
+          {stats.map((s) => (
+            <div key={s.label} className="glass-card">
+              <div className="card-header" style={{ marginBottom: '1rem' }}>
+                <div className="card-icon bg-dim"><s.icon size={18} /></div>
+                <div style={{ flex: 1 }}><div className="card-title">{s.label}</div></div>
+                <span className="tag" style={{ background: s.up ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: s.up ? '#22C55E' : '#EF4444' }}>{s.change}</span>
+              </div>
+              <div className="card-value">{loading ? '...' : s.value}</div>
             </div>
-          ) : (
-            <p className="text-muted" style={{ fontSize: '0.85rem' }}>Yuk buat target impian pertamamu di menu Target!</p>
+          ))}
+          
+          {/* Health Hub Card */}
+          <div className="glass-card" style={{ background: 'var(--accent-grad-soft)', borderColor: 'rgba(139,92,246,0.2)' }}>
+            <div className="card-header" style={{ marginBottom: '0.75rem' }}>
+              <div className="card-icon bg-purple"><Sparkles size={18} /></div>
+              <div style={{ flex: 1 }}><div className="card-title">Kesehatan Finansial</div></div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>Audit Skor</div>
+                <p className="text-muted" style={{ fontSize: '0.75rem' }}>Pantau kesehatan uangmu.</p>
+              </div>
+              <Link to="/kesehatan" className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
+                Cek Skor
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', alignItems: 'start', marginTop: '1rem' }}>
+          
+          {/* Kolom Kiri: Target Impian */}
+          <div className="glass-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <div>
+                <div className="card-title">Daftar Target Aktif</div>
+                <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>Target Impian</h3>
+              </div>
+              <div className="card-icon bg-dim"><TargetIcon size={18} /></div>
+            </div>
+            
+            {targets.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {targets.map(t => {
+                  const pct = Math.min(100, Math.round((t.current_amount / t.target_amount) * 100));
+                  const done = pct >= 100 || t.is_completed;
+                  return (
+                    <div key={t.id} style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                         <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t.name}</span>
+                         {!done && (
+                           <button className="btn btn-ghost" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => openNabung(t)}>
+                             <Zap size={12} /> Nabung
+                           </button>
+                         )}
+                      </div>
+                      <div className="progress-header" style={{ marginTop: '0.5rem' }}>
+                        <span className="text-muted" style={{ fontSize: '0.82rem' }}>
+                          Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
+                        </span>
+                        <span style={{ fontWeight: 700, color: done ? 'var(--success)' : '' }}>{pct}%</span>
+                      </div>
+                      <div className="progress-container">
+                        <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-muted" style={{ fontSize: '0.85rem' }}>Yuk buat target impian pertamamu di menu Target!</p>
+            )}
+          </div>
+
+          {/* Kolom Kanan: Budget Alerts */}
+          {budgetAlerts.length > 0 && (
+            <div className="glass-card" style={{ borderColor: 'rgba(239,68,68,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                <div className="card-icon bg-danger"><PiggyBank size={16} /></div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Peringatan Budget!</div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem' }}>Beberapa kategori mendekati atau melebihi limit.</div>
+                </div>
+              </div>
+              {budgetAlerts.map((b) => (
+                <div key={b.id} style={{ marginBottom: '0.875rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+                  <div className="progress-header">
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{b.categories?.name ?? 'Kategori'}</span>
+                    <span className={b.pct > 100 ? 'text-danger' : 'text-warning'} style={{ fontWeight: 700 }}>{b.pct}%</span>
+                  </div>
+                  <div className="progress-container">
+                    <div className={`progress-fill ${b.pct > 100 ? 'danger' : 'warning'}`} style={{ width: `${Math.min(b.pct, 100)}%` }} />
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                    Rp{b.spent.toLocaleString('id-ID')} / Rp{b.limit_amount.toLocaleString('id-ID')}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Kolom Kanan: Budget Alerts */}
-        {budgetAlerts.length > 0 && (
-          <div className="glass-card" style={{ borderColor: 'rgba(239,68,68,0.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div className="card-icon bg-danger"><PiggyBank size={16} /></div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Peringatan Budget!</div>
-                <div className="text-muted" style={{ fontSize: '0.8rem' }}>Beberapa kategori mendekati atau melebihi limit.</div>
-              </div>
-            </div>
-            {budgetAlerts.map((b) => (
-              <div key={b.id} style={{ marginBottom: '0.875rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
-                <div className="progress-header">
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{b.categories?.name ?? 'Kategori'}</span>
-                  <span className={b.pct > 100 ? 'text-danger' : 'text-warning'} style={{ fontWeight: 700 }}>{b.pct}%</span>
-                </div>
-                <div className="progress-container">
-                  <div className={`progress-fill ${b.pct > 100 ? 'danger' : 'warning'}`} style={{ width: `${Math.min(b.pct, 100)}%` }} />
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                  Rp{b.spent.toLocaleString('id-ID')} / Rp{b.limit_amount.toLocaleString('id-ID')}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Nabung Kilat Modal */}
@@ -225,7 +265,8 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
+
 export default Dashboard;

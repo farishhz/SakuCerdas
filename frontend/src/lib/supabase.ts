@@ -125,3 +125,29 @@ export type ActivityLog = {
   location: string | null;
   created_at: string;
 };
+
+export type RecurringTransaction = {
+  id: string;
+  user_id: string;
+  type: 'income' | 'expense';
+  amount: number;
+  category_id: string | null;
+  description: string | null;
+  interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  next_date: string;
+  is_active: boolean;
+  created_at: string;
+  categories?: Category;
+};
+
+export type DebtLoan = {
+  id: string;
+  user_id: string;
+  type: 'debt' | 'loan';
+  person_name: string;
+  amount: number;
+  description: string | null;
+  due_date: string | null;
+  is_paid: boolean;
+  created_at: string;
+};

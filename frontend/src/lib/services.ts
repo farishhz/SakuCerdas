@@ -266,6 +266,9 @@ export const transactionService = {
     const { count } = await supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id);
     if (count && count >= 10) await profileService.awardBadge('10_TRANSACTION');
 
+    // Update Streak
+    await streakService.updateStreak(user!.id);
+
     return data;
   },
 
@@ -401,4 +404,171 @@ export const activityLogService = {
     if (error) throw error;
     return data;
   },
+};
+
+export const recurringService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('recurring_transactions')
+      .select('*, categories(name, icon)')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async create(payload: any) {
+    const user = await authService.getCurrentUser();
+    const { data, error } = await supabase
+      .from('recurring_transactions')
+      .insert({ ...payload, user_id: user!.id })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async toggleActive(id: string, isActive: boolean) {
+    const { data, error } = await supabase
+      .from('recurring_transactions')
+      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase.from('recurring_transactions').delete().eq('id', id);
+    if (error) throw error;
+  }
+};
+
+export const debtService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('debts_loans')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async create(payload: any) {
+    const user = await authService.getCurrentUser();
+    const { data, error } = await supabase
+      .from('debts_loans')
+      .insert({ ...payload, user_id: user!.id })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async markPaid(id: string, isPaid: boolean) {
+    const { data, error } = await supabase
+      .from('debts_loans')
+      .update({ is_paid: isPaid, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase.from('debts_loans').delete().eq('id', id);
+    if (error) throw error;
+  }
+};
+
+export const healthService = {
+  async getScore() {
+    const summary = await transactionService.getSummary();
+    const budgets = await budgetService.getAll();
+    const debts = await debtService.getAll();
+
+    const unpaidDebts = debts?.filter(d => d.type === 'debt' && !d.is_paid).reduce((s,d) => s+d.amount, 0) || 0;
+    const totalOut = summary.totalExpense;
+    const totalIn = summary.totalIncome;
+
+    let score = 70; // Baseline
+
+    const savingsRate = totalIn > 0 ? ((totalIn - totalOut) / totalIn) * 100 : 0;
+    if (savingsRate > 20) score += 15;
+    else if (savingsRate > 0) score += 5;
+    else score -= 10;
+
+    if (unpaidDebts > totalIn * 2) score -= 20;
+    else if (unpaidDebts > 0) score -= 5;
+    else score += 10;
+
+    if (budgets?.length > 0) score += 5;
+
+    return {
+      score: Math.min(100, Math.max(0, score)),
+      savingsRate: Math.round(savingsRate),
+      unpaidDebts
+    };
+  }
+};
+
+export const streakService = {
+  async updateStreak(userId: string) {
+    try {
+      // Gunakan local date (en-CA menghasilkan YYYY-MM-DD lokal)
+      const now = new Date();
+      const today = now.toLocaleDateString('en-CA');
+      
+      const yesterdayDate = new Date(now);
+      yesterdayDate.setDate(now.getDate() - 1);
+      const yesterday = yesterdayDate.toLocaleDateString('en-CA');
+
+      console.log('Streak Check:', { today, yesterday });
+
+      const { data: streak, error: fetchError } = await supabase
+        .from('saving_streaks')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (!streak) {
+        const { error: insertError } = await supabase.from('saving_streaks').insert({
+          user_id: userId,
+          current_streak: 1,
+          longest_streak: 1,
+          last_activity_date: today
+        });
+        if (insertError) throw insertError;
+        return;
+      }
+
+      if (streak.last_activity_date === today) {
+        console.log('Already recorded today.');
+        return;
+      }
+
+      if (streak.last_activity_date === yesterday) {
+        const newStreak = (streak.current_streak || 0) + 1;
+        const { error: updateError } = await supabase.from('saving_streaks').update({
+          current_streak: newStreak,
+          longest_streak: Math.max(newStreak, streak.longest_streak || 1),
+          last_activity_date: today,
+          updated_at: new Date().toISOString()
+        }).eq('user_id', userId);
+        if (updateError) throw updateError;
+      } else {
+        const { error: resetError } = await supabase.from('saving_streaks').update({
+          current_streak: 1,
+          last_activity_date: today,
+          updated_at: new Date().toISOString()
+        }).eq('user_id', userId);
+        if (resetError) throw resetError;
+      }
+    } catch (err) {
+      console.error('Streak update failed:', err);
+    }
+  }
 };

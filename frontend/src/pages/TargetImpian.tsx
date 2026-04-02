@@ -79,73 +79,75 @@ const TargetImpian = () => {
   };
 
   return (
-    <div className="animate-enter pb-8">
-      <div className="top-header">
-        <div>
-          <div className="header-badge"><TargetIcon size={12} /> {targets.length} Target Aktif</div>
-          <h1>Target Impian</h1>
-          <p>Pantau progres menuju impian finansialmu.</p>
-        </div>
-        <button className="btn btn-primary" onClick={() => setAddModal(true)}>
-          <PlusCircle size={15} /> Buat Target
-        </button>
-      </div>
-
-      {loading ? (
-        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat target...</div>
-      ) : targets.length === 0 ? (
-        <div className="glass-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-          <TargetIcon size={40} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />
-          <h3 style={{ marginBottom: '0.5rem' }}>Belum Ada Target</h3>
-          <p className="text-muted" style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>Punya impian barang atau liburan? Yuk mulai target nabung pertamamu!</p>
-          <button className="btn btn-primary" style={{ margin: '0 auto' }} onClick={() => setAddModal(true)}>
-             Mulai Buat Target
+    <>
+      <div className="animate-enter pb-8">
+        <div className="top-header">
+          <div>
+            <div className="header-badge"><TargetIcon size={12} /> {targets.length} Target Aktif</div>
+            <h1>Target Impian</h1>
+            <p>Pantau progres menuju impian finansialmu.</p>
+          </div>
+          <button className="btn btn-primary" onClick={() => setAddModal(true)}>
+            <PlusCircle size={15} /> Buat Target
           </button>
         </div>
-      ) : (
-        <div className="dashboard-grid">
-          {targets.map(t => {
-            const p = pct(t);
-            const done = p >= 100 || t.is_completed;
-            return (
-              <div key={t.id} className="glass-card" style={done ? { borderColor: 'rgba(34,197,94,0.25)' } : {}}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
-                  <div>
-                    <div className="card-title">Target</div>
-                    <div style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>{t.name}</div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                      Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
+
+        {loading ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat target...</div>
+        ) : targets.length === 0 ? (
+          <div className="glass-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+            <TargetIcon size={40} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />
+            <h3 style={{ marginBottom: '0.5rem' }}>Belum Ada Target</h3>
+            <p className="text-muted" style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>Punya impian barang atau liburan? Yuk mulai target nabung pertamamu!</p>
+            <button className="btn btn-primary" style={{ margin: '0 auto' }} onClick={() => setAddModal(true)}>
+               Mulai Buat Target
+            </button>
+          </div>
+        ) : (
+          <div className="dashboard-grid">
+            {targets.map(t => {
+              const p = pct(t);
+              const done = p >= 100 || t.is_completed;
+              return (
+                <div key={t.id} className="glass-card" style={done ? { borderColor: 'rgba(34,197,94,0.25)' } : {}}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                    <div>
+                      <div className="card-title">Target</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.2rem' }}>{t.name}</div>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                        Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
+                      </div>
                     </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {done && <div className="icon-box bg-success"><CheckCircle size={14} /></div>}
+                      <div className="card-icon bg-dim" style={{ width: '2.5rem', height: '2.5rem' }}>
+                        <TargetIcon size={15} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="progress-header">
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Progress</span>
+                    <span style={{ fontWeight: 700, color: done ? 'var(--success)' : 'var(--text)' }}>{p}%</span>
+                  </div>
+                  <div className="progress-container" style={{ marginBottom: '1.25rem' }}>
+                    <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${p}%` }} />
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {done && <div className="icon-box bg-success"><CheckCircle size={14} /></div>}
-                    <div className="card-icon bg-dim" style={{ width: '2.5rem', height: '2.5rem' }}>
-                      <TargetIcon size={15} />
-                    </div>
+                    {!done && (
+                      <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }} onClick={() => openAdd(t)}>
+                        <PlusCircle size={14} /> Nabung
+                      </button>
+                    )}
+                    <button className="btn btn-danger" style={{ padding: '0.5rem 0.75rem', flex: done ? 1 : 'unset' }} onClick={() => handleDelete(t.id)}>
+                      <Trash2 size={14} /> {done && 'Hapus'}
+                    </button>
                   </div>
                 </div>
-                <div className="progress-header">
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Progress</span>
-                  <span style={{ fontWeight: 700, color: done ? 'var(--success)' : 'var(--text)' }}>{p}%</span>
-                </div>
-                <div className="progress-container" style={{ marginBottom: '1.25rem' }}>
-                  <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${p}%` }} />
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {!done && (
-                    <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }} onClick={() => openAdd(t)}>
-                      <PlusCircle size={14} /> Nabung
-                    </button>
-                  )}
-                  <button className="btn btn-danger" style={{ padding: '0.5rem 0.75rem', flex: done ? 1 : 'unset' }} onClick={() => handleDelete(t.id)}>
-                    <Trash2 size={14} /> {done && 'Hapus'}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Add saldo modal */}
       {modal && selected && (
@@ -190,7 +192,7 @@ const TargetImpian = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 export default TargetImpian;
