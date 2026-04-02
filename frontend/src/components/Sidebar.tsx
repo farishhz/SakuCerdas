@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Target, TrendingUp, History, User, LogOut, PiggyBank, ShieldCheck } from 'lucide-react';
+import { Home, Target, TrendingUp, History, User, LogOut, PiggyBank, ShieldCheck, Heart } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
@@ -66,6 +66,7 @@ const Sidebar = () => {
         {[
           { path: '/budget', icon: PiggyBank, label: 'Budget Kategori' },
           { path: '/dana-darurat', icon: ShieldCheck, label: 'Dana Darurat' },
+          { path: '/zakat', icon: Heart, label: 'Zakat Maal' },
         ].map(({ path, icon: Icon, label }) => (
           <NavLink key={path} to={path} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <Icon size={16} /><span>{label}</span>

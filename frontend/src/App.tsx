@@ -13,6 +13,7 @@ const Riwayat          = lazy(() => import('./pages/Riwayat'));
 const Profile          = lazy(() => import('./pages/Profile'));
 const Budget           = lazy(() => import('./pages/Budget'));
 const DanaDarurat      = lazy(() => import('./pages/DanaDarurat'));
+const Zakat            = lazy(() => import('./pages/Zakat'));
 const Sidebar          = lazy(() => import('./components/Sidebar'));
 const BottomNav        = lazy(() => import('./components/BottomNav'));
 
@@ -87,6 +88,7 @@ function App() {
           <Route path="/profile"             element={<AuthLayout><Profile /></AuthLayout>} />
           <Route path="/budget"              element={<AuthLayout><Budget /></AuthLayout>} />
           <Route path="/dana-darurat"        element={<AuthLayout><DanaDarurat /></AuthLayout>} />
+          <Route path="/zakat"               element={<AuthLayout><Zakat /></AuthLayout>} />
           <Route path="*"                    element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

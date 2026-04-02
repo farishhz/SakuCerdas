@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Palette } from 'lucide-react';
 
-export type Theme = 'sakucerdas' | 'dark' | 'light';
+export type Theme = 'sakucerdas' | 'dark' | 'light' | 'system';
 
 export const useTheme = () => {
   const [theme, setThemeState] = useState<Theme>(() => {
@@ -9,8 +9,24 @@ export const useTheme = () => {
   });
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    const applyTheme = (t: Theme) => {
+      let activeTheme = t;
+      if (t === 'system') {
+        activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', activeTheme);
+    };
+
+    applyTheme(theme);
     localStorage.setItem('theme', theme);
+
+    // Listen for system changes if mode is system
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => applyTheme('system');
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
   }, [theme]);
 
   const setTheme = (t: Theme) => {
@@ -33,6 +49,7 @@ const ThemeToggle = () => {
           { id: 'sakucerdas', label: 'Bawaan' },
           { id: 'dark', label: 'Dark' },
           { id: 'light', label: 'Light' },
+          { id: 'system', label: 'Auto' },
         ].map((t) => (
           <button
             key={t.id}

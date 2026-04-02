@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ArrowDownRight, ArrowUpRight, Plus, Trash2 } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { ArrowDownRight, ArrowUpRight, Plus, Trash2, Search, Calendar, FileText, Download } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
 import { transactionService, categoryService } from '../lib/services';
 import type { Transaction, Category } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const COLORS = ['#FFFFFF', '#AAAAAA', '#777777', '#444444', '#222222', '#111111'];
 
@@ -26,6 +29,7 @@ const Riwayat = () => {
   const [tab, setTab] = useState<'list' | 'chart'>('list');
   const [modal, setModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // Data
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -36,6 +40,11 @@ const Riwayat = () => {
   const [amount, setAmount] = useState<number | ''>('');
   const [catId, setCatId] = useState('');
   const [desc, setDesc] = useState('');
+
+  // Search & Filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCat, setFilterCat] = useState('');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   const fetchData = async () => {
     try {
@@ -60,6 +69,7 @@ const Riwayat = () => {
   const handleAdd = async () => {
     if (!amount || !catId || amount <= 0) return;
     try {
+      setSaving(true);
       await transactionService.create({
         type, amount: Number(amount), category_id: catId, description: desc
       });
@@ -69,6 +79,8 @@ const Riwayat = () => {
     } catch (err) {
       console.error(err);
       alert('Gagal menambah transaksi');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -83,6 +95,61 @@ const Riwayat = () => {
     }
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header & Logo
+    doc.setDrawColor(139, 92, 246);
+    doc.setLineWidth(1);
+    doc.line(14, 25, 45, 25); // Underline for "SakuCerdas"
+    
+    doc.setFontSize(22);
+    doc.setTextColor(139, 92, 246); // SakuCerdas Purple
+    doc.setFont('helvetica', 'bold');
+    doc.text('SakuCerdas', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Smart Financial Management', 14, 30);
+    doc.text(`Laporan Transaksi - ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`, 14, 38);
+    doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 43);
+    
+    const tableData = filteredTransactions.map(t => [
+      new Date(t.date).toLocaleDateString('id-ID'),
+      t.description || '-',
+      t.categories?.name || '-',
+      t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+      `Rp${t.amount.toLocaleString('id-ID')}`
+    ]);
+
+    (doc as any).autoTable({
+      startY: 50,
+      head: [['Tanggal', 'Keterangan', 'Kategori', 'Tipe', 'Nominal']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [139, 92, 246] },
+      styles: { fontSize: 9 }
+    });
+
+    doc.save(`SakuCerdas_Laporan_${new Date().getTime()}.pdf`);
+  };
+
+  const handleExportExcel = () => {
+    const data = filteredTransactions.map(t => ({
+      Tanggal: t.date,
+      Keterangan: t.description || '-',
+      Kategori: t.categories?.name || '-',
+      Tipe: t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+      Nominal: t.amount
+    }));
+    
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transaksi");
+    XLSX.writeFile(workbook, `SakuCerdas_Laporan_${new Date().getTime()}.xlsx`);
+  };
+
   // Calc summary
   const totalIn = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalOut = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
@@ -95,6 +162,42 @@ const Riwayat = () => {
     pieMap[cName] = (pieMap[cName] || 0) + t.amount;
   });
   const pieData = Object.keys(pieMap).map(k => ({ name: k, value: pieMap[k] })).sort((a,b) => b.value - a.value).slice(0, 6); // top 6
+
+  // Filtering
+  const filteredTransactions = transactions.filter(t => {
+    const matchesSearch = (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCat = filterCat === '' || t.category_id === filterCat;
+    const tDate = new Date(t.date);
+    const matchesStart = !dateRange.start || tDate >= new Date(dateRange.start);
+    const matchesEnd = !dateRange.end || tDate <= new Date(dateRange.end);
+    return matchesSearch && matchesCat && matchesStart && matchesEnd;
+  });
+
+  // Comparison Data (This month vs Last Month)
+  const comparisonData = (() => {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+    const thisYear = now.getFullYear();
+    const lastYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+    const data = [
+      { name: 'Bulan Lalu', income: 0, expense: 0 },
+      { name: 'Bulan Ini', income: 0, expense: 0 }
+    ];
+
+    transactions.forEach(t => {
+      const d = new Date(t.date);
+      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+        if (t.type === 'income') data[1].income += t.amount;
+        else data[1].expense += t.amount;
+      } else if (d.getMonth() === lastMonth && d.getFullYear() === lastYear) {
+        if (t.type === 'income') data[0].income += t.amount;
+        else data[0].expense += t.amount;
+      }
+    });
+    return data;
+  })();
 
   // Calc Line Trend (Last 6 Months)
   const trendData = (() => {
@@ -129,16 +232,45 @@ const Riwayat = () => {
           <h1>Riwayat Transaksi</h1>
           <p>Pantau arus kas dan analisis pengeluaranmu.</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button className="btn btn-primary" onClick={() => setModal(true)}>
             <Plus size={15}/> Catat
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '0.25rem', marginBottom: '1.5rem', width: 'fit-content' }}>
-        <button onClick={() => setTab('list')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'list' ? 'white' : 'transparent', color: tab === 'list' ? '#080808' : 'var(--text-muted)', transition: 'all 0.2s' }}>List</button>
-        <button onClick={() => setTab('chart')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'chart' ? 'white' : 'transparent', color: tab === 'chart' ? '#080808' : 'var(--text-muted)', transition: 'all 0.2s' }}>Analisis</button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '0.25rem' }}>
+          <button onClick={() => setTab('list')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'list' ? 'white' : 'transparent', color: tab === 'list' ? '#080808' : 'var(--text-muted)', transition: 'all 0.2s' }}>List</button>
+          <button onClick={() => setTab('chart')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'chart' ? 'white' : 'transparent', color: tab === 'chart' ? '#080808' : 'var(--text-muted)', transition: 'all 0.2s' }}>Analisis</button>
+        </div>
+
+        {tab === 'list' && (
+          <div style={{ display: 'flex', flex: 1, gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div className="input-wrapper" style={{ flex: 1, minWidth: '150px' }}>
+               <Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+               <input type="text" placeholder="Cari..." className="input-field" style={{ paddingLeft: '2.5rem', fontSize: '0.85rem' }} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+            </div>
+            <select className="input-field" style={{ width: 'auto', fontSize: '0.85rem', padding: '0 0.75rem' }} value={filterCat} onChange={e => setFilterCat(e.target.value)}>
+               <option value="">Semua Kategori</option>
+               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+               <Calendar size={14} className="text-muted" />
+               <input type="date" className="input-field" style={{ width: 'auto', fontSize: '0.8rem', padding: '0.3rem' }} value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} />
+               <span className="text-muted">–</span>
+               <input type="date" className="input-field" style={{ width: 'auto', fontSize: '0.8rem', padding: '0.3rem' }} value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} />
+            </div>
+            <div style={{ display: 'flex', gap: '0.25rem' }}>
+               <button className="btn btn-ghost" style={{ padding: '0.5rem', border: '1px solid var(--border)' }} onClick={handleExportPDF} title="Unduh PDF">
+                  <FileText size={16} />
+               </button>
+               <button className="btn btn-ghost" style={{ padding: '0.5rem', border: '1px solid var(--border)' }} onClick={handleExportExcel} title="Unduh Excel">
+                  <Download size={16} />
+               </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Summary */}
@@ -161,14 +293,18 @@ const Riwayat = () => {
         <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat transaksi...</div>
       ) : tab === 'list' ? (
         <div className="glass-card" style={{ overflowX: 'auto' }}>
-          {transactions.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-              <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Belum ada transaksi</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>Mulai catat pengeluaran pertamamu di sini.</p>
-              <button className="btn btn-primary" style={{ margin: '0 auto' }} onClick={() => setModal(true)}>
-                Catat Transaksi
-              </button>
+              <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>{searchTerm || filterCat ? 'Hasil tidak ditemukan' : 'Belum ada transaksi'}</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                {searchTerm || filterCat ? 'Coba ganti kata kunci atau filter Anda.' : 'Mulai catat pengeluaran pertamamu di sini.'}
+              </p>
+              {!searchTerm && !filterCat && (
+                <button className="btn btn-primary" style={{ margin: '0 auto' }} onClick={() => setModal(true)}>
+                  Catat Transaksi
+                </button>
+              )}
             </div>
           ) : (
             <table className="data-table" style={{ width: '100%', minWidth: '500px' }}>
@@ -182,7 +318,7 @@ const Riwayat = () => {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map(t => (
+                {filteredTransactions.map(t => (
                   <tr key={t.id}>
                     <td style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -214,9 +350,26 @@ const Riwayat = () => {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          
+          {/* Comparison Bar Chart */}
+          <div className="glass-card" style={{ gridColumn: 'span 2' }}>
+            <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>Perbandingan Pengeluaran & Pemasukan</div>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={comparisonData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="name" tick={{ fill: '#555', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#555', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `Rp${v/1000000}Jt`} />
+                <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
+                <Legend iconType="circle" />
+                <Bar dataKey="income" fill="#22C55E" name="Pemasukan" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expense" fill="#EF4444" name="Pengeluaran" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           {/* Donut */}
           <div className="glass-card">
-            <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>Distribusi Pengeluaran</div>
+            <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>Breakdown Kategori Pengeluaran</div>
             {pieData.length > 0 ? (
               <>
                 <ResponsiveContainer width="100%" height={220}>
@@ -227,17 +380,24 @@ const Riwayat = () => {
                     <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
                   </PieChart>
                 </ResponsiveContainer>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem', justifyContent: 'center' }}>
-                  {pieData.map((d, i) => (
-                    <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }} />
-                      {d.name}
-                    </div>
-                  ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.25rem' }}>
+                  {pieData.map((d, i) => {
+                    const total = pieData.reduce((s, x) => s + x.value, 0);
+                    const pct = Math.round((d.value / total) * 100);
+                    return (
+                      <div key={d.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }} />
+                          {d.name}
+                        </div>
+                        <div style={{ fontWeight: 600 }}>{pct}%</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             ) : (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem 0' }}>Belum ada pengeluaran</div>
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem 0' }}>Belum ada data pengeluaran.</div>
             )}
           </div>
 
@@ -307,7 +467,9 @@ const Riwayat = () => {
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setModal(false)}>Batal</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd}>Simpan</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd} disabled={saving || !amount || !catId}>
+                {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
+              </button>
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ const DanaDarurat = () => {
   const [tanggungan, setTanggungan] = useState(0);
   const [pengeluaran, setPengeluaran] = useState(3000000);
   const [result, setResult] = useState({ multiplier: 0, amount: 0 });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchExisting = async () => {
@@ -54,10 +55,10 @@ const DanaDarurat = () => {
     setResult({ multiplier, amount });
 
     try {
+      setSaving(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       
-      // Upsert
       const payload = {
         user_id: user.id,
         marital_status: married,
@@ -68,7 +69,6 @@ const DanaDarurat = () => {
         updated_at: new Date().toISOString()
       };
       
-      // Check if exists first for simple update (or onConflict upsert)
       const { data: existing } = await supabase
         .from('emergency_fund')
         .select('id')
@@ -85,17 +85,22 @@ const DanaDarurat = () => {
     } catch (err) {
       console.error(err);
       alert('Gagal menyimpan perhitungan');
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleCreateTarget = async () => {
     if (result.amount <= 0) return;
     try {
+      setSaving(true);
       await targetService.create({ name: 'Dana Darurat', target_amount: result.amount });
       alert('Target Dana Darurat berhasil dibuat di halaman Target Impian!');
     } catch (err) {
       console.error(err);
       alert('Gagal membuat Target Impian. Mungkin target serupa sudah ada.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -150,8 +155,8 @@ const DanaDarurat = () => {
               </div>
             </div>
 
-            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={hitung}>
-              Hitung Dana Darurat <ArrowRight size={15} />
+            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={hitung} disabled={saving}>
+              {saving ? 'Menyimpan...' : <>Hitung Dana Darurat <ArrowRight size={15} /></>}
             </button>
           </div>
 
@@ -181,8 +186,8 @@ const DanaDarurat = () => {
             <div className="divider" />
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setStep('form')}>← Hitung Ulang</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleCreateTarget}>
-                Jadikan Target Impian
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleCreateTarget} disabled={saving}>
+                {saving ? 'Memproses...' : 'Jadikan Target Impian'}
               </button>
             </div>
           </div>

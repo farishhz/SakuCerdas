@@ -15,6 +15,7 @@ const TargetImpian = () => {
   const [addAmt, setAddAmt]     = useState(50000);
   const [newName, setNewName]   = useState('');
   const [newTarget, setNewTarget] = useState(1000000);
+  const [saving, setSaving] = useState(false);
 
   const fetchTargets = async () => {
     try {
@@ -39,24 +40,30 @@ const TargetImpian = () => {
   const handleAdd = async () => {
     if (!selected || addAmt <= 0) return;
     try {
+      setSaving(true);
       await targetService.deposit(selected.id, addAmt, 'Deposit manual UI');
       setModal(false);
       fetchTargets();
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'Gagal menambah saldo');
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleCreate = async () => {
     if (!newName || newTarget <= 0) return;
     try {
+      setSaving(true);
       await targetService.create({ name: newName, target_amount: newTarget });
       setNewName(''); setNewTarget(1000000); setAddModal(false);
       fetchTargets();
     } catch (err) {
       console.error(err);
       alert('Gagal membuat target');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -152,7 +159,9 @@ const TargetImpian = () => {
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setModal(false)}>Batal</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd}>Simpan Tabungan</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd} disabled={saving || !addAmt}>
+                {saving ? 'Menyimpan...' : 'Simpan Tabungan'}
+              </button>
             </div>
           </div>
         </div>
@@ -174,7 +183,9 @@ const TargetImpian = () => {
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setAddModal(false)}>Batal</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleCreate}>Buat Target</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleCreate} disabled={saving || !newName || !newTarget}>
+                {saving ? 'Memproses...' : 'Buat Target'}
+              </button>
             </div>
           </div>
         </div>

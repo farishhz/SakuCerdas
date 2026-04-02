@@ -14,6 +14,7 @@ const Budget = () => {
   const [modal, setModal] = useState(false);
   const [selectedCatId, setSelectedCatId] = useState('');
   const [newLimit, setNewLimit] = useState(500000);
+  const [saving, setSaving] = useState(false);
 
   const fetchAll = async () => {
     try {
@@ -63,12 +64,15 @@ const Budget = () => {
   const handleCreate = async () => {
     if (!selectedCatId || newLimit <= 0) return;
     try {
+      setSaving(true);
       await budgetService.create({ category_id: selectedCatId, limit_amount: newLimit });
       setSelectedCatId(''); setNewLimit(500000); setModal(false);
       fetchAll();
     } catch (err) {
       console.error(err);
       alert('Gagal membuat budget (mungkin kategori ini sudah punya budget di bulan ini).');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -190,7 +194,9 @@ const Budget = () => {
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setModal(false)}>Batal</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleCreate}>Simpan Budget</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleCreate} disabled={saving || !selectedCatId}>
+                {saving ? 'Menyimpan...' : 'Simpan Budget'}
+              </button>
             </div>
           </div>
         </div>

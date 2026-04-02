@@ -14,6 +14,7 @@ const Dashboard = () => {
   const [budgetAlerts, setBudgetAlerts]   = useState<any[]>([]);
   const [summary, setSummary]             = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
   const [loading, setLoading]             = useState(true);
+  const [saving, setSaving]               = useState(false);
 
   const fetchAll = async () => {
     try {
@@ -78,6 +79,7 @@ const Dashboard = () => {
     if (!selectedTarget) return alert('Pilih target impian dulu ya!');
     if (!nabungAmt || nabungAmt <= 0) return alert('Masukkan nominal yang valid!');
     try {
+      setSaving(true);
       await targetService.deposit(selectedTarget.id, nabungAmt as number, 'Nabung Kilat dari Dashboard');
       alert(`Berhasil nabung Rp${Number(nabungAmt).toLocaleString('id-ID')} untuk ${selectedTarget.name}!`);
       setModalOpen(false);
@@ -86,6 +88,8 @@ const Dashboard = () => {
     } catch (err: any) {
       console.error('Nabung kilat error:', err);
       alert(err.message || 'Gagal nabung. Coba lagi.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -214,7 +218,9 @@ const Dashboard = () => {
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setModalOpen(false)}>Batal</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleNabungKilat}>Nabung Sekarang</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleNabungKilat} disabled={saving || !nabungAmt}>
+                {saving ? 'Menyimpan...' : 'Nabung Sekarang'}
+              </button>
             </div>
           </div>
         </div>
