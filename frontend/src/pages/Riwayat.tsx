@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAx
 import { transactionService, categoryService } from '../lib/services';
 import type { Transaction, Category } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
+import StreakCelebration from '../components/StreakCelebration';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -41,6 +42,10 @@ const Riwayat = () => {
   const [catId, setCatId] = useState('');
   const [desc, setDesc] = useState('');
 
+  // Streak Celebration
+  const [showStreak, setShowStreak] = useState(false);
+  const [streakCount, setStreakCount] = useState(0);
+
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCat, setFilterCat] = useState('');
@@ -70,12 +75,19 @@ const Riwayat = () => {
     if (!amount || !catId || amount <= 0) return;
     try {
       setSaving(true);
-      await transactionService.create({
+      const result = await transactionService.create({
         type, amount: Number(amount), category_id: catId, description: desc
       });
+      
       setModal(false);
       setAmount(''); setCatId(''); setDesc('');
       fetchData();
+
+      // Show Streak Celebration if incremented
+      if (result.streakResult?.incremented) {
+        setStreakCount(result.streakResult.newStreak);
+        setShowStreak(true);
+      }
     } catch (err) {
       console.error(err);
       alert('Gagal menambah transaksi');
@@ -479,6 +491,8 @@ const Riwayat = () => {
           </div>
         </div>
       )}
+
+      {showStreak && <StreakCelebration streak={streakCount} onClose={() => setShowStreak(false)} />}
     </div>
   );
 };

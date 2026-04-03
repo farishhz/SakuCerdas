@@ -18,7 +18,7 @@ const Sidebar          = lazy(() => import('./components/Sidebar'));
 const BottomNav        = lazy(() => import('./components/BottomNav'));
 const RecurringTransactions = lazy(() => import('./pages/RecurringTransactions'));
 const DebtLoans        = lazy(() => import('./pages/DebtLoans'));
-const FinancialHealth  = lazy(() => import('./pages/FinancialHealth'));
+const FinancialLiteracy = lazy(() => import('./pages/FinancialHealth'));
 const FinancialCalendar = lazy(() => import('./pages/FinancialCalendar'));
 
 const PageLoader = () => (
@@ -95,7 +95,7 @@ function App() {
           <Route path="/zakat"               element={<AuthLayout><Zakat /></AuthLayout>} />
           <Route path="/rutin"               element={<AuthLayout><RecurringTransactions /></AuthLayout>} />
           <Route path="/hutang"              element={<AuthLayout><DebtLoans /></AuthLayout>} />
-          <Route path="/kesehatan"           element={<AuthLayout><FinancialHealth /></AuthLayout>} />
+          <Route path="/kesehatan"           element={<AuthLayout><FinancialLiteracy /></AuthLayout>} />
           <Route path="/kalender"            element={<AuthLayout><FinancialCalendar /></AuthLayout>} />
           <Route path="*"                    element={<Navigate to="/" replace />} />
         </Routes>

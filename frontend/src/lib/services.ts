@@ -184,7 +184,7 @@ export const targetService = {
       .eq('type', 'expense')
       .single();
 
-    await transactionService.create({
+    const txResult = await transactionService.create({
       type: 'expense',
       amount: amount,
       category_id: categories?.id,
@@ -216,7 +216,7 @@ export const targetService = {
     if (error) throw error;
     await profileService.addXP(10);
     await profileService.awardBadge('FIRST_TARGET_DEPOSIT');
-    return data;
+    return { ...data, streakResult: txResult.streakResult };
   },
 
   async delete(targetId: string) {
@@ -267,9 +267,9 @@ export const transactionService = {
     if (count && count >= 10) await profileService.awardBadge('10_TRANSACTION');
 
     // Update Streak
-    await streakService.updateStreak(user!.id);
+    const streakResult = await streakService.updateStreak(user!.id);
 
-    return data;
+    return { ...data, streakResult };
   },
 
   async delete(transactionId: string) {
@@ -514,7 +514,7 @@ export const healthService = {
 };
 
 export const streakService = {
-  async updateStreak(userId: string) {
+  async updateStreak(userId: string): Promise<{ incremented: boolean; newStreak: number }> {
     try {
       // Gunakan local date (en-CA menghasilkan YYYY-MM-DD lokal)
       const now = new Date();
@@ -523,8 +523,6 @@ export const streakService = {
       const yesterdayDate = new Date(now);
       yesterdayDate.setDate(now.getDate() - 1);
       const yesterday = yesterdayDate.toLocaleDateString('en-CA');
-
-      console.log('Streak Check:', { today, yesterday });
 
       const { data: streak, error: fetchError } = await supabase
         .from('saving_streaks')
@@ -535,40 +533,39 @@ export const streakService = {
       if (fetchError) throw fetchError;
 
       if (!streak) {
-        const { error: insertError } = await supabase.from('saving_streaks').insert({
+        await supabase.from('saving_streaks').insert({
           user_id: userId,
           current_streak: 1,
           longest_streak: 1,
           last_activity_date: today
         });
-        if (insertError) throw insertError;
-        return;
+        return { incremented: true, newStreak: 1 };
       }
 
       if (streak.last_activity_date === today) {
-        console.log('Already recorded today.');
-        return;
+        return { incremented: false, newStreak: streak.current_streak };
       }
 
       if (streak.last_activity_date === yesterday) {
         const newStreak = (streak.current_streak || 0) + 1;
-        const { error: updateError } = await supabase.from('saving_streaks').update({
+        await supabase.from('saving_streaks').update({
           current_streak: newStreak,
           longest_streak: Math.max(newStreak, streak.longest_streak || 1),
           last_activity_date: today,
           updated_at: new Date().toISOString()
         }).eq('user_id', userId);
-        if (updateError) throw updateError;
+        return { incremented: true, newStreak };
       } else {
-        const { error: resetError } = await supabase.from('saving_streaks').update({
+        await supabase.from('saving_streaks').update({
           current_streak: 1,
           last_activity_date: today,
           updated_at: new Date().toISOString()
         }).eq('user_id', userId);
-        if (resetError) throw resetError;
+        return { incremented: true, newStreak: 1 };
       }
     } catch (err) {
       console.error('Streak update failed:', err);
+      return { incremented: false, newStreak: 0 };
     }
   }
 };

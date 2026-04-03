@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame, Sparkles } from 'lucide-react';
+import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame, Newspaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { targetService, transactionService, budgetService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
+import StreakCelebration from '../components/StreakCelebration';
 
 const Dashboard = () => {
   const [modalOpen, setModalOpen]         = useState(false);
@@ -17,6 +18,10 @@ const Dashboard = () => {
   const [loading, setLoading]             = useState(true);
   const [saving, setSaving]               = useState(false);
   const [streak, setStreak]               = useState(0);
+
+  // Streak Celebration
+  const [showStreak, setShowStreak]       = useState(false);
+  const [streakCount, setStreakCount]     = useState(0);
 
   const fetchAll = async () => {
     try {
@@ -94,11 +99,18 @@ const Dashboard = () => {
     if (!nabungAmt || nabungAmt <= 0) return alert('Masukkan nominal yang valid!');
     try {
       setSaving(true);
-      await targetService.deposit(selectedTarget.id, nabungAmt as number, 'Nabung Kilat dari Dashboard');
+      const result = await targetService.deposit(selectedTarget.id, nabungAmt as number, 'Nabung Kilat from Dashboard');
+      
       alert(`Berhasil nabung Rp${Number(nabungAmt).toLocaleString('id-ID')} untuk ${selectedTarget.name}!`);
       setModalOpen(false);
       setNabungAmt('');
       fetchAll();
+
+      // Show Streak Celebration if incremented
+      if (result.streakResult?.incremented) {
+        setStreakCount(result.streakResult.newStreak);
+        setShowStreak(true);
+      }
     } catch (err: any) {
       console.error('Nabung kilat error:', err);
       alert(err.message || 'Gagal nabung. Coba lagi.');
@@ -150,19 +162,19 @@ const Dashboard = () => {
             </div>
           ))}
           
-          {/* Health Hub Card */}
+          {/* Literacy Card */}
           <div className="glass-card" style={{ background: 'var(--accent-grad-soft)', borderColor: 'rgba(139,92,246,0.2)' }}>
             <div className="card-header" style={{ marginBottom: '0.75rem' }}>
-              <div className="card-icon bg-purple"><Sparkles size={18} /></div>
-              <div style={{ flex: 1 }}><div className="card-title">Kesehatan Finansial</div></div>
+              <div className="card-icon bg-purple"><Newspaper size={18} /></div>
+              <div style={{ flex: 1 }}><div className="card-title">Literasi Finansial</div></div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>Audit Skor</div>
-                <p className="text-muted" style={{ fontSize: '0.75rem' }}>Pantau kesehatan uangmu.</p>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>Wawasan Baru</div>
+                <p className="text-muted" style={{ fontSize: '0.75rem' }}>Update berita & strategi ekonomi.</p>
               </div>
               <Link to="/kesehatan" className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
-                Cek Skor
+                Baca Berita
               </Link>
             </div>
           </div>
@@ -265,6 +277,7 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+      {showStreak && <StreakCelebration streak={streakCount} onClose={() => setShowStreak(false)} />}
     </>
   );
 };
