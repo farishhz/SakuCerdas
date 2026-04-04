@@ -1,6 +1,6 @@
-# 🖼️ Mockup & Dokumen Visual Premium - SakuCerdas
+# 🖼️ Mockup & Dokumen Visual - SakuCerdas
 
-Dokumen ini berisi representasi visual lengkap dari seluruh fitur utama aplikasi **SakuCerdas**. Semua tampilan di bawah ini diambil dari sistem yang sudah terisi dengan data simulasi riil untuk memberikan gambaran penggunaan yang nyata.
+Dokumen ini berisi representasi visual lengkap dari seluruh fitur utama aplikasi **SakuCerdas**. Semua tampilan di bawah ini diambil dari sistem yang sudah terisi dengan data simulasi.
 
 ---
 
