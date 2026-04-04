@@ -14,7 +14,7 @@ const COLORS = ['#FFFFFF', '#AAAAAA', '#777777', '#444444', '#222222', '#111111'
 const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }> }) => {
   if (active && payload?.length) {
     return (
-      <div style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.82rem' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.82rem' }}>
         {payload.map((p) => (
           <div key={p.name} style={{ color: p.color, fontWeight: 600 }}>
             {p.name}: Rp{(+(p.value || 0)).toLocaleString('id-ID')}
@@ -258,8 +258,8 @@ const Riwayat = () => {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '0.25rem' }}>
-          <button onClick={() => setTab('list')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'list' ? 'white' : 'transparent', color: tab === 'list' ? '#080808' : 'var(--text-muted)', transition: 'all 0.2s' }}>List</button>
-          <button onClick={() => setTab('chart')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'chart' ? 'white' : 'transparent', color: tab === 'chart' ? '#080808' : 'var(--text-muted)', transition: 'all 0.2s' }}>Analisis</button>
+          <button onClick={() => setTab('list')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'list' ? 'var(--bg-card)' : 'transparent', color: tab === 'list' ? 'var(--text)' : 'var(--text-muted)', transition: 'all 0.2s', border: `1px solid ${tab === 'list' ? 'var(--border)' : 'transparent'}` }}>List</button>
+          <button onClick={() => setTab('chart')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600, background: tab === 'chart' ? 'var(--bg-card)' : 'transparent', color: tab === 'chart' ? 'var(--text)' : 'var(--text-muted)', transition: 'all 0.2s', border: `1px solid ${tab === 'chart' ? 'var(--border)' : 'transparent'}` }}>Analisis</button>
         </div>
 
         {tab === 'list' && (
@@ -268,15 +268,15 @@ const Riwayat = () => {
                <Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                <input type="text" placeholder="Cari..." className="input-field" style={{ paddingLeft: '2.5rem', fontSize: '0.85rem' }} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            <select className="input-field" style={{ width: 'auto', fontSize: '0.85rem', padding: '0 0.75rem' }} value={filterCat} onChange={e => setFilterCat(e.target.value)}>
+            <select className="input-field" style={{ width: 'auto', fontSize: '0.85rem', padding: '0 0.75rem', border: '1px solid var(--border)', borderRadius: '0.5rem', cursor: 'pointer', background: 'var(--bg)' }} value={filterCat} onChange={e => setFilterCat(e.target.value)}>
                <option value="">Semua Kategori</option>
                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                <Calendar size={14} className="text-muted" />
-               <input type="date" className="input-field" style={{ width: 'auto', fontSize: '0.8rem', padding: '0.3rem' }} value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} />
+               <input type="date" className="input-field" style={{ width: 'auto', fontSize: '0.8rem', padding: '0.3rem 0.5rem', border: '1px solid var(--border)', borderRadius: '0.5rem', cursor: 'pointer', background: 'var(--bg)' }} value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} />
                <span className="text-muted">–</span>
-               <input type="date" className="input-field" style={{ width: 'auto', fontSize: '0.8rem', padding: '0.3rem' }} value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} />
+               <input type="date" className="input-field" style={{ width: 'auto', fontSize: '0.8rem', padding: '0.3rem 0.5rem', border: '1px solid var(--border)', borderRadius: '0.5rem', cursor: 'pointer', background: 'var(--bg)' }} value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} />
             </div>
             <div style={{ display: 'flex', gap: '0.25rem' }}>
                <button className="btn btn-ghost" style={{ padding: '0.5rem', border: '1px solid var(--border)' }} onClick={handleExportPDF} title="Unduh PDF">
@@ -376,7 +376,7 @@ const Riwayat = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="name" tick={{ fill: '#555', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#555', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `Rp${v/1000000}Jt`} />
-                <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
+                <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
                 <Legend iconType="circle" />
                 <Bar dataKey="income" fill="#22C55E" name="Pemasukan" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="expense" fill="#EF4444" name="Pengeluaran" radius={[4, 4, 0, 0]} />
@@ -394,7 +394,7 @@ const Riwayat = () => {
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
                       {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="none" />)}
                     </Pie>
-                    <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
+                    <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.25rem' }}>

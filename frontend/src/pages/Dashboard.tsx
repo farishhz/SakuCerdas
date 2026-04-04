@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame, Newspaper } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { targetService, transactionService, budgetService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
@@ -161,23 +160,6 @@ const Dashboard = () => {
               <div className="card-value">{loading ? '...' : s.value}</div>
             </div>
           ))}
-          
-          {/* Literacy Card */}
-          <div className="glass-card" style={{ background: 'var(--accent-grad-soft)', borderColor: 'rgba(139,92,246,0.2)' }}>
-            <div className="card-header" style={{ marginBottom: '0.75rem' }}>
-              <div className="card-icon bg-purple"><Newspaper size={18} /></div>
-              <div style={{ flex: 1 }}><div className="card-title">Literasi Finansial</div></div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>Wawasan Baru</div>
-                <p className="text-muted" style={{ fontSize: '0.75rem' }}>Update berita & strategi ekonomi.</p>
-              </div>
-              <Link to="/kesehatan" className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
-                Baca Berita
-              </Link>
-            </div>
-          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', alignItems: 'start', marginTop: '1rem' }}>

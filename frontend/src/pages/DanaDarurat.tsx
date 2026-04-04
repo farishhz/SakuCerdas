@@ -125,7 +125,7 @@ const DanaDarurat = () => {
       </div>
 
       {step === 'form' && (
-        <div style={{ maxWidth: '520px' }}>
+        <div style={{ maxWidth: '520px', margin: '0 auto' }}>
           <div className="glass-card" style={{ marginBottom: '1rem' }}>
             <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>📋 Profil Keuanganmu</div>
 
@@ -173,7 +173,7 @@ const DanaDarurat = () => {
       )}
 
       {step === 'result' && (
-        <div style={{ maxWidth: '520px' }}>
+        <div style={{ maxWidth: '520px', margin: '0 auto' }}>
           <div className="glass-card" style={{ marginBottom: '1rem', borderColor: 'rgba(34,197,94,0.25)', textAlign: 'center' }}>
             <div style={{ marginBottom: '1.5rem' }}>
               <div className="card-icon bg-success" style={{ margin: '0 auto 1rem', width: '3.5rem', height: '3.5rem' }}><CheckCircle size={22} /></div>

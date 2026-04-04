@@ -97,7 +97,7 @@ const Profile = () => {
     try {
       if (!window.confirm('Yakin ingin keluar?')) return;
       await authService.logout();
-      navigate('/login');
+      window.location.href = '/login';
     } catch (err) {
       console.error(err);
     }
@@ -172,8 +172,8 @@ const Profile = () => {
 
       {/* Profile Card */}
       <div className="glass-card" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-        <div style={{ width: '72px', height: '72px', borderRadius: '1rem', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <User size={36} color="#080808" />
+        <div style={{ width: '72px', height: '72px', borderRadius: '1rem', background: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <User size={36} style={{ color: 'var(--text)' }} />
         </div>
         <div style={{ flex: 1, minWidth: '200px' }}>
           <h2 style={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.03em', marginBottom: '0.25rem' }}>{profile?.full_name || 'Pengguna Baru'}</h2>
@@ -188,7 +188,7 @@ const Profile = () => {
             <span>{profile?.xp || 0} / {maxXp} XP</span>
           </div>
           <div className="progress-container">
-            <div className="progress-fill" style={{ width: `${Math.min(((profile?.xp || 0) / maxXp) * 100, 100)}%`, background: 'white' }} />
+            <div className="progress-fill" style={{ width: `${Math.min(((profile?.xp || 0) / maxXp) * 100, 100)}%`, background: 'var(--purple)' }} />
           </div>
         </div>
       </div>

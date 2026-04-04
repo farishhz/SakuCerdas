@@ -102,7 +102,7 @@ const SimulasiInvestasi = () => {
               </defs>
               <XAxis dataKey="bln" tick={{ fill: '#555', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `Thn ${v/12}`} />
               <YAxis tick={{ fill: '#555', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `${v/1000000}Jt`} />
-              <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
+              <Tooltip formatter={(v) => [`Rp${Number(v).toLocaleString('id-ID')}`]} contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
               <Area type="monotone" dataKey="Nabung" stroke="#666" strokeWidth={1.5} fill="url(#gNabung)" dot={false} />
               <Area type="monotone" dataKey="Investasi" stroke="#22C55E" strokeWidth={2} fill="url(#gInvestasi)" dot={false} />
             </AreaChart>

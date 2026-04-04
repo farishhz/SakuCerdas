@@ -18,24 +18,29 @@ class ErrorBoundary extends React.Component<
     if (this.state.error) {
       return (
         <div style={{
-          minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: '#080808', color: '#F2F2F2', fontFamily: 'Inter, sans-serif',
-          flexDirection: 'column', gap: '1rem', padding: '2rem', textAlign: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw',
+          background: 'var(--bg)', color: 'var(--text)', fontFamily: 'Inter, sans-serif',
+          flexDirection: 'column', gap: '1.5rem', padding: '2rem', textAlign: 'center'
         }}>
           <div style={{ fontSize: '2.5rem' }}>⚠️</div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Terjadi kesalahan saat memuat aplikasi</h1>
-          <pre style={{
-            background: '#111', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '0.75rem', padding: '1rem', fontSize: '0.78rem',
-            color: '#EF4444', maxWidth: '640px', overflowX: 'auto', textAlign: 'left',
+          <div style={{
+            maxWidth: '500px', padding: '2rem', borderRadius: '1rem',
+            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.4)',
           }}>
-            {this.state.error.message}
-            {'\n'}
-            {this.state.error.stack}
-          </pre>
-          <button
+            <pre style={{
+              fontSize: '0.78rem',
+              color: '#EF4444', overflowX: 'auto', textAlign: 'left', margin: 0
+            }}>
+              {this.state.error.message}
+              {'\n'}
+              {this.state.error.stack}
+            </pre>
+          </div>
+          <button 
             onClick={() => window.location.reload()}
-            style={{ padding: '0.625rem 1.5rem', background: 'white', color: '#080808', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
+            style={{ padding: '0.625rem 1.5rem', background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
           >
             Muat ulang
           </button>

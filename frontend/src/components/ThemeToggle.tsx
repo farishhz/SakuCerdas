@@ -48,8 +48,6 @@ const ThemeToggle = () => {
         {[
           { id: 'sakucerdas', label: 'Bawaan' },
           { id: 'dark', label: 'Dark' },
-          { id: 'light', label: 'Light' },
-          { id: 'system', label: 'Auto' },
         ].map((t) => (
           <button
             key={t.id}

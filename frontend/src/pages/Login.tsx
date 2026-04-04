@@ -44,8 +44,8 @@ const Login = () => {
       <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.015) 0%, transparent 50%)', pointerEvents: 'none' }} />
       <div className="auth-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Wallet size={14} color="#080808" />
+          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', background: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Wallet size={14} style={{ color: 'var(--text)' }} />
           </div>
           <span style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.02em' }}>SakuCerdas</span>
         </div>

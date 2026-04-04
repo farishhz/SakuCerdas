@@ -3,6 +3,7 @@ import { Home, Target, TrendingUp, History, User, LogOut, PiggyBank, ShieldCheck
 import ThemeToggle from './ThemeToggle';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { authService } from '../lib/services';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -83,7 +84,13 @@ const Sidebar = () => {
       </nav>
       <div className="sidebar-footer" style={{ padding: '0.5rem 0.5rem 1rem 0.5rem', borderTop: '1px solid var(--border)' }}>
         <ThemeToggle />
-        <button onClick={() => navigate('/')} className="logout-btn" style={{ marginTop: '0.5rem', width: 'auto', margin: '0 0.5rem' }}>
+        <button 
+          onClick={async () => {
+            if (!window.confirm('Yakin ingin keluar?')) return;
+            await authService.logout();
+            window.location.href = '/login';
+          }} 
+          className="logout-btn" style={{ marginTop: '0.5rem', width: 'auto', margin: '0 0.5rem' }}>
           <LogOut size={15} /><span>Keluar</span>
         </button>
       </div>
