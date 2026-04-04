@@ -22,8 +22,9 @@ export const newsService = {
       }
 
       // Broad query for more diverse financial results
-      const query = 'ekonomi OR investasi OR "perencanaan keuangan" OR "pasar modal" OR "berita bisnis" OR "saham" OR "reksadana"';
-      const url = `${BASE_URL}/search?q=${encodeURIComponent(query)}&lang=id&country=id&max=${max}&apikey=${API_KEY}`;
+      // Simplify query and parameters to avoid "Failed to fetch" (CORS/Network issues)
+      const query = 'ekonomi OR investasi OR keuangan';
+      const url = `${BASE_URL}/search?q=${encodeURIComponent(query)}&lang=id&max=${max}&apikey=${API_KEY}`;
       
       const response = await fetch(url);
       if (!response.ok) {
@@ -37,7 +38,7 @@ export const newsService = {
       return data.articles || [];
     } catch (error) {
       console.error('News fetch error:', error);
-      return [];
+      throw error;
     }
   },
 
