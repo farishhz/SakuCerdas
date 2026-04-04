@@ -6,13 +6,20 @@ import type { NewsArticle } from '../lib/newsService';
 const FinancialLiteracy = () => {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchNews = async () => {
-      setLoading(true);
-      const data = await newsService.getFinancialNews(40);
-      setNews(data);
-      setLoading(false);
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await newsService.getFinancialNews(40);
+        setNews(data);
+      } catch (err: any) {
+        setError(err.message || 'Gagal memuat berita.');
+      } finally {
+        setLoading(false);
+      }
     };
     fetchNews();
   }, []);
@@ -32,11 +39,13 @@ const FinancialLiteracy = () => {
           <div className="spin-icon" style={{ width: '40px', height: '40px', border: '3px solid rgba(139,92,246,0.1)', borderTopColor: 'var(--purple)', borderRadius: '50%', margin: '0 auto' }} />
           <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Mencari berita terbaru...</p>
         </div>
-      ) : news.length === 0 ? (
+      ) : error || news.length === 0 ? (
         <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📡</div>
-          <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Berita gagal dimuat</h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Pastikan koneksi internet stabil atau coba lagi nanti.</p>
+          <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>{error || 'Berita gagal dimuat'}</h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+            {error ? 'Silakan cek apakah API Key GNews sudah diset di Vercel Dashboard.' : 'Pastikan koneksi internet stabil atau coba lagi nanti.'}
+          </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()}>Coba Lagi</button>
         </div>
       ) : (
