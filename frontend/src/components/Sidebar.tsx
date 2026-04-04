@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Home, Target, TrendingUp, History, User, LogOut, PiggyBank, ShieldCheck, Heart, Repeat, CreditCard, Calendar, Newspaper } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useState, useEffect } from 'react';
@@ -6,7 +6,6 @@ import { supabase } from '../lib/supabase';
 import { authService } from '../lib/services';
 
 const Sidebar = () => {
-  const navigate = useNavigate();
   const [profile, setProfile] = useState<{full_name: string, level: string} | null>(null);
 
   useEffect(() => {
