@@ -107,9 +107,7 @@ Hasil build akan tersimpan di folder `dist`.
 
 ## 🌐 Informasi Penting Lainnya
 
--   **Deployment**: Aplikasi ini dioptimalkan untuk di-deploy menggunakan **Vercel**.
 -   **Proxy API**: Untuk menghindari masalah CORS pada GNews API di produksi, aplikasi menggunakan Vercel Serverless Functions yang terletak di folder `frontend/api/`.
--   **Privasi Data**: Pastikan repositori di GitHub diatur ke **Private** sesuai instruksi pengumpulan proyek.
 
 ---
 
