@@ -4,6 +4,13 @@
 
 ---
 
+## 🔗 Live Demo
+
+Akses aplikasi secara langsung melalui tautan berikut:
+👉 **[https://sakucerdas.vercel.app](https://sakucerdas.vercel.app)**
+
+---
+
 ## 👥 Detail Anggota Tim Capstone (SakuCerdas)
 
 | No  | ID Cohort    | Nama                   | Email                              | Asal Sekolah   |
