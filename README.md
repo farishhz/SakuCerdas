@@ -16,6 +16,13 @@
 
 ---
 
+## 🖼️ Dokumentasi Visual (Mockup)
+
+Lihat tampilan antarmuka (UI) SakuCerdas selengkapnya di:
+👉 **[Lihat Mockup & Screenshot Aplikasi](./docs/MOCKUP.md)**
+
+---
+
 ## ✨ Fitur Utama
 
 -   **📊 Dashboard Interaktif**: Ringkasan saldo, pemasukan, pengeluaran, dan berita ekonomi terbaru (GNews API).
@@ -33,7 +40,7 @@
 ## 🛠️ Tech Stack
 
 -   **Frontend**: React.js, Vite, TypeScript.
--   **Styling**: Custom Vanilla CSS (Premium Glassmorphism Design).
+-   **Styling**: Custom Vanilla CSS.
 -   **Backend/Database**: Supabase (Database & Authentication).
 -   **API Eksternal**: GNews API (News Literacy).
 -   **Icons**: Lucide React.
