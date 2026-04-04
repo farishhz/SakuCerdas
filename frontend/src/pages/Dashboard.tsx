@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame } from 'lucide-react';
+import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame, Newspaper } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { targetService, transactionService, budgetService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
 import StreakCelebration from '../components/StreakCelebration';
+import { Link } from 'react-router-dom';
+import { newsService } from '../lib/newsService';
+import type { NewsArticle } from '../lib/newsService';
 
 const Dashboard = () => {
   const [modalOpen, setModalOpen]         = useState(false);
@@ -21,6 +24,7 @@ const Dashboard = () => {
   // Streak Celebration
   const [showStreak, setShowStreak]       = useState(false);
   const [streakCount, setStreakCount]     = useState(0);
+  const [newsList, setNewsList]           = useState<NewsArticle[]>([]);
 
   const fetchAll = async () => {
     try {
@@ -84,6 +88,10 @@ const Dashboard = () => {
       // Ambil streak
       const { data: sData } = await supabase.from('saving_streaks').select('current_streak').eq('user_id', user.id).maybeSingle();
       if (sData) setStreak(sData.current_streak);
+
+      // Ambil berita terbaru
+      const news = await newsService.getFinancialNews(3);
+      setNewsList(news);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
@@ -160,6 +168,43 @@ const Dashboard = () => {
               <div className="card-value">{loading ? '...' : s.value}</div>
             </div>
           ))}
+
+          {/* Literacy Cards */}
+          {newsList.length > 0 ? (
+            newsList.map((item, idx) => (
+              <Link key={idx} to="/kesehatan" className="glass-card" style={{ background: 'var(--accent-grad-soft)', borderColor: 'rgba(139,92,246,0.2)', transition: 'all 0.2s', cursor: 'pointer', display: 'block', textDecoration: 'none' }}>
+                <div className="card-header" style={{ marginBottom: '0.75rem' }}>
+                  <div className="card-icon bg-purple"><Newspaper size={18} /></div>
+                  <div style={{ flex: 1 }}><div className="card-title">Literasi Finansial</div></div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.title}
+                  </div>
+                  <p className="text-muted" style={{ fontSize: '0.72rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    Sumber: {item.source.name}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--purple-light)', fontSize: '0.75rem', fontWeight: 700, marginTop: '0.2rem' }}>
+                    Baca Berita <ArrowUpRight size={12} />
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <Link to="/kesehatan" className="glass-card" style={{ background: 'var(--accent-grad-soft)', borderColor: 'rgba(139,92,246,0.2)', transition: 'all 0.2s', cursor: 'pointer', display: 'block', textDecoration: 'none' }}>
+              <div className="card-header" style={{ marginBottom: '0.75rem' }}>
+                <div className="card-icon bg-purple"><Newspaper size={18} /></div>
+                <div style={{ flex: 1 }}><div className="card-title">Literasi Finansial</div></div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text)' }}>Wawasan Baru</div>
+                <p className="text-muted" style={{ fontSize: '0.72rem', margin: 0 }}>Pelajari strategi keuangan terbaru.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--purple-light)', fontSize: '0.75rem', fontWeight: 700, marginTop: '0.2rem' }}>
+                  Baca Berita <ArrowUpRight size={12} />
+                </div>
+              </div>
+            </Link>
+          )}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', alignItems: 'start', marginTop: '1rem' }}>

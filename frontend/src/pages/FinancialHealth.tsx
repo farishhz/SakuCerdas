@@ -1,80 +1,79 @@
-import { Newspaper, Rocket, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Newspaper, ExternalLink, Clock } from 'lucide-react';
+import { newsService } from '../lib/newsService';
+import type { NewsArticle } from '../lib/newsService';
 
 const FinancialLiteracy = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="animate-enter pb-8" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="glass-card" style={{ maxWidth: '500px', textAlign: 'center', padding: '3rem 2rem' }}>
-        <div className="card-icon bg-purple" style={{ width: '64px', height: '64px', margin: '0 auto 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Rocket size={32} className="text-primary" />
-        </div>
-        
-        <div className="header-badge" style={{ margin: '0 auto 1rem' }}>
-          <Newspaper size={12} /> Literasi Keuangan
-        </div>
-        
-        <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '1rem' }}>Coming Soon!</h1>
-        
-        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
-          Kami sedang menyiapkan konten edukasi eksklusif, analisis pasar, dan tips finansial terbaik untuk membantu Anda mencapai kebebasan finansial.
-        </p>
-        
-        <button className="btn btn-primary" onClick={() => navigate('/dashboard')} style={{ width: '100%', gap: '0.5rem' }}>
-          <ArrowLeft size={16} /> Kembali ke Dashboard
-        </button>
-      </div>
-    </div>
-  );
-};
-
-/* 
-ORIGINAL CODE (PRESERVED)
-------------------------
-import { useState, useEffect } from 'react';
-import { Newspaper, Globe, TrendingUp, ArrowRight, Info, ShieldCheck, Lightbulb } from 'lucide-react';
-
-const FinancialLiteracyOriginal = () => {
+  const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading for premium feel
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    const fetchNews = async () => {
+      setLoading(true);
+      const data = await newsService.getFinancialNews(40);
+      setNews(data);
+      setLoading(false);
+    };
+    fetchNews();
   }, []);
 
-  if (loading) return (
+  return (
     <div className="animate-enter pb-8">
       <div className="top-header">
         <div>
-          <div className="header-badge"><Newspaper size={12} /> Literasi Finansial</div>
-          <h1>Memuat Wawasan...</h1>
-          <p>Menyiapkan berita dan analisis ekonomi terbaru untuk Anda.</p>
+          <div className="header-badge"><Newspaper size={12} /> Literasi Keuangan</div>
+          <h1>Wawasan & Berita</h1>
+          <p>Update tren ekonomi dan strategi investasi terbaru untukmu.</p>
         </div>
       </div>
-      <div className="glass-card" style={{ textAlign: 'center', padding: '3rem' }}>
-        <div className="spin-icon" style={{ width: '40px', height: '40px', border: '3px solid rgba(139,92,246,0.2)', borderTopColor: 'var(--purple)', borderRadius: '50%', margin: '0 auto' }} />
-      </div>
+
+      {loading ? (
+        <div style={{ padding: '4rem', textAlign: 'center' }}>
+          <div className="spin-icon" style={{ width: '40px', height: '40px', border: '3px solid rgba(139,92,246,0.1)', borderTopColor: 'var(--purple)', borderRadius: '50%', margin: '0 auto' }} />
+          <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Mencari berita terbaru...</p>
+        </div>
+      ) : news.length === 0 ? (
+        <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📡</div>
+          <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Berita gagal dimuat</h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Pastikan koneksi internet stabil atau coba lagi nanti.</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>Coba Lagi</button>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+          {news.map((item, idx) => (
+            <div key={idx} className="glass-card news-card-interactive" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+              {item.image && (
+                <div style={{ height: '180px', overflow: 'hidden', borderBottom: '1px solid var(--border)' }}>
+                  <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }} />
+                </div>
+              )}
+              <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span className="tag tag-default" style={{ fontSize: '0.65rem' }}>{item.source.name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+                    <Clock size={10} />
+                    {new Date(item.publishedAt).toLocaleDateString('id-ID')}
+                  </div>
+                </div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, lineHeight: 1.4, marginBottom: '0.75rem', color: 'var(--text)' }}>
+                  {item.title}
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1.25rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                  {item.description}
+                </p>
+                <div style={{ marginTop: 'auto' }}>
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', gap: '0.5rem', border: '1px solid var(--border)' }}>
+                    Baca Selengkapnya <ExternalLink size={14} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-
-  const articles = [
-    {
-      id: 1,
-      title: "Ketegangan Geopolitik Global & Dampaknya ke Rupiah",
-      category: "Ekonomi Global",
-      date: "2 April 2024",
-      image: "/geopolitics_economy_article_1775143155733.png",
-      summary: "Konflik di Timur Tengah dan ketidakpastian pemilu AS mulai menekan mata uang berkembang. Rupiah diprediksi akan mengalami volatilitas tinggi dalam beberapa pekan ke depan.",
-      impact: "Harga barang impor (elektronik, kedelai) berpotensi naik. Biaya cicilan dengan bunga float mungkin terpengaruh.",
-      advice: "Amankan cadangan kas dalam instrumen likuid. Tunda pembelian barang impor non-primer jika tidak mendesak.",
-      color: "var(--purple)"
-    },
-    ... (dan seterusnya, kode disembunyikan untuk kebersihan namun tetap ada di file)
-  ];
-  // ... rest of the original code
 };
-*/
 
 export default FinancialLiteracy;
