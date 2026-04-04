@@ -23,6 +23,13 @@ Lihat tampilan antarmuka (UI) SakuCerdas selengkapnya di:
 
 ---
 
+## 🛠️ Panduan Instalasi & Penggunaan
+
+Untuk teknis instalasi secara detail (termasuk SQL Schema untuk Supabase), silakan baca:
+👉 **[Instruksi Lengkap Instalasi & Setup](./USAGE.md)**
+
+---
+
 ## ✨ Fitur Utama
 
 -   **📊 Dashboard Interaktif**: Ringkasan saldo, pemasukan, pengeluaran, dan berita ekonomi terbaru (GNews API).
@@ -106,4 +113,4 @@ Hasil build akan tersimpan di folder `dist`.
 
 ---
 
-© 2024 **Tim Capstone SMKN 8 Jakarta** - Future-Ready Work & Economy.
+© 2026 **Tim Capstone SMKN 8 Jakarta** - Future-Ready Work & Economy.
