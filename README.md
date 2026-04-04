@@ -37,6 +37,14 @@ Untuk teknis instalasi secara detail (termasuk SQL Schema untuk Supabase), silak
 
 ---
 
+## 📽️ Slide Presentasi (Capstone)
+
+Kami telah menyiapkan materi presentasi profesional dalam format PDF dan PowerPoint:
+- 📄 **[Download Presentasi (PDF)](./docs/PRESENTASI.pdf)**
+- 📊 **[Download Presentasi (PPTX)](./docs/PRESENTASI.pptx)**
+
+---
+
 ## ✨ Fitur Utama
 
 -   **📊 Dashboard Interaktif**: Ringkasan saldo, pemasukan, pengeluaran, dan berita ekonomi terbaru (GNews API).
