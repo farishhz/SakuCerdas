@@ -11,6 +11,10 @@ app.use(express.json());
 
 app.use('/api', apiRoutes);
 
-app.listen(port, () => {
-  console.log(`backend SakuCerdas berjalan di http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`backend SakuCerdas berjalan di http://localhost:${port}`);
+  });
+}
+
+export default app;
