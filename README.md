@@ -74,16 +74,13 @@ Pastikan Anda sudah menginstal:
 git clone https://github.com/farishhz/SakuCerdas.git
 cd SakuCerdas
 
-# Instal Backend
-cd backend
-npm install
-
-# Instal Frontend
-cd ../frontend
+# Instal seluruh dependensi (Frontend & Backend) sekaligus
 npm install
 ```
 
 ### 3. Konfigurasi Environment Variable
+
+Daftarkan variabel berikut pada file `.env` masing-masing folder:
 
 **Backend (`backend/.env`):**
 ```env
@@ -102,25 +99,35 @@ VITE_GNEWS_API_KEY=YOUR_GNEWS_API_KEY
 
 ---
 
-## 🚀 Cara Menjalankan
+## 🚀 Cara Menjalankan (Lokal)
+
+Anda dapat menjalankan kedua layanan dari folder utama (root) menggunakan perintah berikut:
 
 ### 1. Jalankan Backend
 ```bash
-cd backend
-npm run dev
+npm run dev:back
 ```
 
-### 2. Jalankan Frontend
+### 2. Jalankan Frontend (Tab Baru)
 ```bash
-cd frontend
-npm run dev
+npm run dev:front
 ```
 Aplikasi akan berjalan di: `http://localhost:5173`
 
 ---
 
+## ☁️ Deployment (Vercel)
+
+SakuCerdas sudah dikonfigurasi sebagai **Vercel Monorepo**. Untuk deploy:
+1. Hubungkan repository GitHub ke Vercel.
+2. Biarkan pengaturan **Root Directory** kosong (default).
+3. Masukkan seluruh **Environment Variables** (dari Frontend & Backend) ke Vercel Settings.
+4. Gunakan `/api` sebagai nilai `VITE_SERVER_URL` di produksi.
+
+---
+
 ## 🛡️ Arsitektur BFF (Backend-For-Frontend)
-SakuCerdas menggunakan pola **BFF** untuk memisahkan logika bisnis dari antarmuka pengguna. Seluruh kalkulasi skor kesehatan finansial, pengelolaan target, dan pengolahan data transaksi diproses di server Node.js sebelum dikirim ke frontend, sehingga performa aplikasi di sisi klien tetap ringan dan aman.
+SakuCerdas menggunakan pola **BFF** untuk memisahkan logika bisnis dari antarmuka pengguna. Seluruh kalkulasi skor kesehatan finansial, pengelolaan target, dan pengolahan data transaksi diproses di server Node.js (Vercel Serverless Functions) sebelum dikirim ke frontend, sehingga performa aplikasi di sisi klien tetap ringan dan aman.
 
 ---
 

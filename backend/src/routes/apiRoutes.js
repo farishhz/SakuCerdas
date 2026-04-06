@@ -1,6 +1,7 @@
 import express from 'express';
 import { authMiddleware } from './authMiddleware.js';
 import { getDashboardSummary } from '../controllers/dashboardController.js';
+import { getNews } from '../controllers/newsController.js';
 import { getFinancialHealth } from '../controllers/healthController.js';
 import { getTransactions, createTransaction, deleteTransaction } from '../controllers/transactionController.js';
 import { getTargets, createTarget, deleteTarget, depositTarget } from '../controllers/targetController.js';
@@ -12,6 +13,8 @@ import { getCategories } from '../controllers/categoryController.js';
 import { getProfile, updateProfile, getBadges, getActivityLogs } from '../controllers/userController.js';
 
 const router = express.Router();
+
+router.get('/news', getNews);
 
 router.use(authMiddleware);
 
