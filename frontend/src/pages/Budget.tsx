@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PiggyBank, Plus, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react';
-import { budgetService, transactionService, categoryService } from '../lib/services';
+import { bffService } from '../lib/services';
 import type { Budget as SupabaseBudget, Category } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
 
@@ -19,30 +19,16 @@ const Budget = () => {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const [fetchedBudgets, fetchedCategories] = await Promise.all([
-        budgetService.getAll(),
-        categoryService.getAll('expense')
+      const [budgetRes, categoryRes] = await Promise.all([
+        bffService.getBudgets(),
+        bffService.getCategories('expense')
       ]);
 
-      setCategories(fetchedCategories || []);
+      setCategories(categoryRes.data || []);
+      const fetchedBudgets = budgetRes.data || [];
 
-      if (fetchedBudgets && fetchedBudgets.length > 0) {
-        const now = new Date();
-        const expenses = await transactionService.getAll({
-          month: now.getMonth() + 1,
-          year: now.getFullYear(),
-          type: 'expense'
-        });
-
-        const merged: BudgetWithSpent[] = fetchedBudgets.map(b => {
-          const spent = expenses
-            ?.filter(t => t.category_id === b.category_id)
-            .reduce((sum, t) => sum + t.amount, 0) || 0;
-          return { ...b, spent };
-        });
-        
-        // Sort by percent used
-        setBudgets(merged.sort((a,b) => (b.spent/b.limit_amount) - (a.spent/a.limit_amount)));
+      if (fetchedBudgets.length > 0) {
+        setBudgets(fetchedBudgets.sort((a: any, b: any) => (b.spent/b.limit_amount) - (a.spent/a.limit_amount)));
       } else {
         setBudgets([]);
       }
@@ -65,7 +51,7 @@ const Budget = () => {
     if (!selectedCatId || newLimit <= 0) return;
     try {
       setSaving(true);
-      await budgetService.create({ category_id: selectedCatId, limit_amount: newLimit });
+      await bffService.createBudget({ category_id: selectedCatId, limit_amount: newLimit });
       setSelectedCatId(''); setNewLimit(500000); setModal(false);
       fetchAll();
     } catch (err) {
@@ -79,7 +65,7 @@ const Budget = () => {
   const handleDelete = async (id: string) => {
     if(!window.confirm('Hapus budget ini?')) return;
     try {
-      await budgetService.delete(id);
+      await bffService.deleteBudget(id);
       fetchAll();
     } catch (err) {
       console.error(err);
@@ -105,7 +91,6 @@ const Budget = () => {
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat budget...</div>
         ) : (
           <>
-            {/* Overview */}
             <div className="dashboard-grid">
               <div className="glass-card">
                 <div className="card-title">Total Budget</div>
@@ -142,7 +127,6 @@ const Budget = () => {
                           {st === 'danger' ? <AlertTriangle size={14} /> : st === 'warning' ? <AlertTriangle size={14} /> : <CheckCircle size={14} />}
                         </div>
                         <div>
-                          {/* Jika category query ada di services.ts kita akses b.categories */}
                           <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{b.categories?.name ?? 'Kategori'}</div>
                           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                             Rp{b.spent.toLocaleString('id-ID')} / Rp{b.limit_amount.toLocaleString('id-ID')}

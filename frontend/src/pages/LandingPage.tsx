@@ -22,7 +22,6 @@ const gradText: React.CSSProperties = {
 const LandingPage = () => {
   const navigate = useNavigate();
 
-  // Auto-redirect if already logged in
   useEffect(() => {
     authService.getCurrentUser().then(user => {
       if (user) navigate('/dashboard', { replace: true });
@@ -35,7 +34,6 @@ const LandingPage = () => {
       <div style={{ position: 'fixed', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(109,40,217,0.18) 0%, transparent 70%)', top: '-200px', left: '-200px', pointerEvents: 'none' }} />
       <div style={{ position: 'fixed', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, transparent 70%)', bottom: '-150px', right: '-150px', pointerEvents: 'none' }} />
 
-      {/* Nav */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '1.25rem 2.5rem',

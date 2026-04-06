@@ -1,15 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '../lib/supabase.js';
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-
-// GET /api/dashboard
 export const getDashboardSummary = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
+    const user = req.user;
+    const supabase = getSupabaseClient(req.token);
 
-    // ambil nama depan user
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name')
@@ -17,35 +12,34 @@ export const getDashboardSummary = async (req, res) => {
       .single();
     const userName = profile?.full_name ? profile.full_name.split(' ')[0] : 'User';
 
-    // ambil dan hitung total pemasukan, pengeluaran, saldo
     const { data: txs } = await supabase
       .from('transactions')
       .select('amount, type')
       .eq('user_id', user.id);
       
-    let totalIncome = 0, totalExpense = 0, balance = 0;
+    let totalIncome = 0, totalExpense = 0;
     txs?.forEach(t => {
-      if (t.type === 'income') { totalIncome += t.amount; balance += t.amount; }
-      else if (t.type === 'expense') { totalExpense += t.amount; balance -= t.amount; }
+      if (t.type === 'income') totalIncome += Number(t.amount);
+      else if (t.type === 'expense') totalExpense += Number(t.amount);
     });
+    const balance = totalIncome - totalExpense;
 
-    // ambil data target impian dan progresnya
     const { data: targets } = await supabase
       .from('targets')
       .select('*')
       .eq('user_id', user.id);
     const sortedTargets = (targets || []).sort((a, b) => {
-      return (b.current_amount / b.target_amount) - (a.current_amount / a.target_amount);
+      const pctA = a.current_amount / a.target_amount;
+      const pctB = b.current_amount / b.target_amount;
+      return pctB - pctA;
     });
 
-    // ambil data streak
     const { data: streakData } = await supabase
       .from('saving_streaks')
       .select('current_streak')
       .eq('user_id', user.id)
       .maybeSingle();
 
-    // 5. hitung alert budget kalau pengeluaran bulan ini sudah mendekati limit budget
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     
@@ -59,16 +53,20 @@ export const getDashboardSummary = async (req, res) => {
       .select('category_id, amount')
       .eq('user_id', user.id)
       .eq('type', 'expense')
-      .gte('created_at', startOfMonth);
+      .gte('date', startOfMonth);
 
-    const budgetAlerts = (budgets || []).map(b => {
+    const alerts = (budgets || []).map(b => {
       const spent = expensesThisMonth
         ?.filter(e => e.category_id === b.category_id)
-        .reduce((sum, e) => sum + e.amount, 0) || 0;
-      return { ...b, spent, pct: Math.round((spent / b.limit_amount) * 100) };
+        .reduce((sum, e) => sum + Number(e.amount), 0) || 0;
+      return { 
+        category_name: b.categories?.name || 'Kategori',
+        limit: b.limit_amount,
+        spent,
+        pct: Math.round((spent / b.limit_amount) * 100) 
+      };
     }).filter(b => b.pct >= 80);
 
-    // kirim semua data json ke frontend
     res.json({
       status: 'success',
       data: {
@@ -76,35 +74,48 @@ export const getDashboardSummary = async (req, res) => {
         summary: { totalIncome, totalExpense, balance },
         targets: sortedTargets,
         streak: streakData?.current_streak || 0,
-        budgetAlerts
+        budgetAlerts: alerts
       }
     });
 
   } catch (error) {
-    res.status(500).json({ error: 'Gagal memuat dashboard' });
+    console.error('Dashboard error:', error);
+    res.status(500).json({ status: 'error', message: error.message, code: error.code });
   }
 };
 
-// POST /api/targets/deposit
 export const depositTarget = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    const { data: { user } } = await supabase.auth.getUser(token);
+    const user = req.user;
     const { targetId, amount, description } = req.body;
 
-    // post ke tabel transaksi
+    const { data: targetData } = await supabase
+      .from('targets')
+      .select('name, current_amount')
+      .eq('id', targetId)
+      .single();
+
+    if (!targetData) return res.status(404).json({ error: 'Target tidak ditemukan' });
+
     await supabase.from('transactions').insert([{
-      user_id: user.id, target_id: targetId, amount, description, type: 'saving'
+      user_id: user.id, 
+      amount, 
+      description: `Nabung Kilat: ${targetData.name}`, 
+      type: 'expense',
+      date: new Date().toISOString().split('T')[0]
     }]);
 
-    // tambah saldo ke target impian
-    const { data: targetData } = await supabase.from('targets').select('current_amount').eq('id', targetId).single();
-    await supabase.from('targets').update({ current_amount: targetData.current_amount + amount }).eq('id', targetId);
+    await supabase
+      .from('targets')
+      .update({ current_amount: Number(targetData.current_amount) + Number(amount) })
+      .eq('id', targetId);
 
-    // update streak nabung
-    const { data: streakData } = await supabase.from('saving_streaks').select('*').eq('user_id', user.id).maybeSingle();
+    const { data: streakData } = await supabase
+      .from('saving_streaks')
+      .select('current_streak')
+      .eq('user_id', user.id)
+      .maybeSingle();
     let newStreak = (streakData?.current_streak || 0) + 1;
-    
 
     res.json({
       status: 'success',
@@ -113,6 +124,7 @@ export const depositTarget = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: 'Gagal melakukan transaksi nabung kilat' });
+    console.error('Deposit error:', error);
+    res.status(500).json({ status: 'error', message: error.message, code: error.code });
   }
 };

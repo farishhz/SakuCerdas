@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Phone, Settings, Shield, Monitor, Smartphone, Award } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { authService, profileService } from '../lib/services';
+import { bffService, authService } from '../lib/services';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
+import { supabase } from '../lib/supabase';
 
 type ProfileData = {
   id: string;
@@ -30,7 +30,6 @@ const Profile = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modals state
   const [profileModal, setProfileModal] = useState(false);
   const [pwModal, setPwModal] = useState(false);
   const [editName, setEditName] = useState('');
@@ -43,47 +42,19 @@ const Profile = () => {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        // Fetch profile
-        const { data: pData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (pData) {
-          setProfile({
-            ...pData,
-            email: user.email || ''
-          });
-          setEditName(pData.full_name || '');
-          setEditPhone(pData.phone || '');
-        }
-
-        // Fetch badges & user_badges
-        const [allBadges, userBadges] = await Promise.all([
-          supabase.from('badges').select('*').order('created_at', { ascending: true }),
-          supabase.from('user_badges').select('badge_id').eq('user_id', user.id)
+        const [pResult, bResult, lResult] = await Promise.all([
+          bffService.getProfile(),
+          bffService.getBadges(),
+          bffService.getActivityLogs(3)
         ]);
 
-        const earnedIds = new Set(userBadges.data?.map(b => b.badge_id) || []);
-        const mappedBadges = (allBadges.data || []).map(b => ({
-          ...b,
-          earned: earnedIds.has(b.id)
-        }));
-        setBadges(mappedBadges);
-
-        // Fetch activity logs
-        const { data: actLogs } = await supabase
-          .from('activity_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(3);
-        
-        setLogs(actLogs || []);
+        if (pResult.data) {
+          setProfile(pResult.data);
+          setEditName(pResult.data.full_name || '');
+          setEditPhone(pResult.data.phone || '');
+        }
+        setBadges(bResult.data || []);
+        setLogs(lResult.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -107,8 +78,7 @@ const Profile = () => {
     if (!profile) return;
     try {
       setSaving(true);
-      await profileService.updateProfile(profile.id, { full_name: editName, phone: editPhone });
-      await supabase.auth.updateUser({ data: { full_name: editName, phone: editPhone } });
+      await bffService.updateProfile(editName, editPhone);
       setProfile({ ...profile, full_name: editName, phone: editPhone });
       setProfileModal(false);
       alert('Profil berhasil diperbarui!');
@@ -170,7 +140,6 @@ const Profile = () => {
         </button>
       </div>
 
-      {/* Profile Card */}
       <div className="glass-card" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
         <div style={{ width: '72px', height: '72px', borderRadius: '1rem', background: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <User size={36} style={{ color: 'var(--text)' }} />
@@ -193,7 +162,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Info + Actions */}
       <div className="dashboard-grid" style={{ marginBottom: '1rem' }}>
         <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div className="icon-box"><Mail size={16} /></div>
@@ -213,7 +181,6 @@ const Profile = () => {
         </button>
       </div>
 
-      {/* Badges */}
       <div className="glass-card" style={{ marginBottom: '1rem' }}>
         <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>🏆 Badge & Pencapaian</div>
         {badges.length > 0 ? (
@@ -233,7 +200,6 @@ const Profile = () => {
         )}
       </div>
 
-      {/* Activity Log */}
       <div className="glass-card">
         <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>🔒 Riwayat Aktivitas & Login</div>
         {logs.length > 0 ? (
@@ -274,7 +240,6 @@ const Profile = () => {
         </button>
       </div>
 
-      {/* Edit Profile Modal */}
       {profileModal && (
         <div className="modal-overlay" onClick={() => setProfileModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -305,7 +270,6 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Edit Password Modal */}
       {pwModal && (
         <div className="modal-overlay" onClick={() => setPwModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -329,13 +293,12 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Delete Account Modal */}
       {deleteModal && (
         <div className="modal-overlay" onClick={() => setDeleteModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ borderColor: 'rgba(239,68,68,0.4)' }}>
             <div className="modal-title" style={{ color: '#EF4444' }}>Hapus Akun Permanen?</div>
             <div className="modal-desc">
-              Tindakan ini <strong>tidak dapat dibatalkan</strong>. Seluruh data transaksi, target impian, dan pencapaian Anda akan dihapus selamanya dari server SakuCerdas.
+              Tindakan ini tidak dapat dibatalkan. Seluruh data transaksi, target impian, dan pencapaian Anda akan dihapus selamanya dari server SakuCerdas.
             </div>
             
             <div style={{ background: 'rgba(239,68,68,0.08)', padding: '1rem', borderRadius: '0.75rem', marginBottom: '1.5rem', border: '1px solid rgba(239,68,68,0.15)' }}>

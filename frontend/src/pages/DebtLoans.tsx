@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CreditCard, Plus, Trash2, CheckCircle2, Clock, Wallet, ArrowDownRight, ArrowUpRight } from 'lucide-react';
-import { debtService } from '../lib/services';
+import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
 
 const DebtLoans = () => {
@@ -20,8 +20,8 @@ const DebtLoans = () => {
   const fetchDebts = async () => {
     try {
       setLoading(true);
-      const data = await debtService.getAll();
-      setDebts(data || []);
+      const res = await bffService.getDebts();
+      setDebts(res.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -39,7 +39,7 @@ const DebtLoans = () => {
 
     try {
       setSaving(true);
-      await debtService.create({
+      await bffService.createDebt({
         ...formData,
         amount: Number(formData.amount),
         due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null,
@@ -57,7 +57,7 @@ const DebtLoans = () => {
 
   const handleTogglePaid = async (id: string, currentStatus: boolean) => {
     try {
-      await debtService.markPaid(id, !currentStatus);
+      await bffService.toggleDebtPaid(id, !currentStatus);
       fetchDebts();
     } catch (err) {
       console.error(err);
@@ -67,7 +67,7 @@ const DebtLoans = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('Hapus catatan ini?')) return;
     try {
-      await debtService.delete(id);
+      await bffService.deleteDebt(id);
       fetchDebts();
     } catch (err) {
       console.error(err);
@@ -217,5 +217,4 @@ const DebtLoans = () => {
     </>
   );
 };
-
 export default DebtLoans;

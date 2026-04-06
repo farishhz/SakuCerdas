@@ -1,20 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Heart, Info, Calculator, ExternalLink, ShieldCheck } from 'lucide-react';
-import { transactionService } from '../lib/services';
+import { bffService } from '../lib/services';
 
 const Zakat = () => {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   
-  // Nisab (85g Gold - Assume 1.2M IDR per gram)
   const [goldPrice] = useState(1200000);
   const nisab = goldPrice * 85; 
   
   useEffect(() => {
     const getBal = async () => {
       try {
-        const summary = await transactionService.getSummary();
-        setBalance(summary.balance || 0);
+        const res = await bffService.getDashboardSummary();
+        setBalance(res.data?.summary?.balance || 0);
       } catch (err) {
         console.error(err);
       } finally {
@@ -38,7 +37,6 @@ const Zakat = () => {
       </div>
 
       <div className="dashboard-grid">
-        {/* Main Calculator */}
         <div className="glass-card" style={{ gridColumn: 'span 2' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
             <div className="card-icon bg-dim"><Calculator size={18} /></div>
@@ -77,7 +75,6 @@ const Zakat = () => {
           </div>
         </div>
 
-        {/* Zakat Result */}
         <div className="glass-card" style={{ background: isObligated ? 'var(--accent-grad)' : 'rgba(255,255,255,0.02)', border: isObligated ? 'none' : '1px solid var(--border)' }}>
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', color: isObligated ? 'white' : 'var(--text-muted)' }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem', opacity: 0.8 }}><span>Zakat yang Harus Ditunaikan</span></div>
@@ -93,7 +90,6 @@ const Zakat = () => {
         </div>
       </div>
 
-      {/* Info Section */}
       <div className="glass-card" style={{ marginTop: '1.5rem' }}>
         <h4 style={{ fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Info size={16} className="text-primary" /> <span>Edukasi Zakat Maal</span>

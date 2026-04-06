@@ -11,7 +11,6 @@ const Login = () => {
   const [loading, setLoading]   = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Auto-redirect if already logged in
   useEffect(() => {
     authService.getCurrentUser().then(user => {
       if (user) navigate('/dashboard', { replace: true });

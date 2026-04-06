@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Repeat, Plus, Trash2, Power, PowerOff, Calendar, Tag, CreditCard } from 'lucide-react';
-import { recurringService, categoryService } from '../lib/services';
+import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
 
 const RecurringTransactions = () => {
@@ -22,12 +22,12 @@ const RecurringTransactions = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [rData, cData] = await Promise.all([
-        recurringService.getAll(),
-        categoryService.getAll(),
+      const [rRes, cRes] = await Promise.all([
+        bffService.getRecurring(),
+        bffService.getCategories(),
       ]);
-      setRecurring(rData || []);
-      setCategories(cData || []);
+      setRecurring(rRes.data || []);
+      setCategories(cRes.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -45,7 +45,7 @@ const RecurringTransactions = () => {
 
     try {
       setSaving(true);
-      await recurringService.create({
+      await bffService.createRecurring({
         ...formData,
         amount: Number(formData.amount),
         category_id: formData.category_id || null,
@@ -66,7 +66,7 @@ const RecurringTransactions = () => {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      await recurringService.toggleActive(id, !currentStatus);
+      await bffService.toggleRecurringActive(id, !currentStatus);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -76,7 +76,7 @@ const RecurringTransactions = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('Hapus transaksi berulang ini?')) return;
     try {
-      await recurringService.delete(id);
+      await bffService.deleteRecurring(id);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -174,7 +174,7 @@ const RecurringTransactions = () => {
               <div className="input-group">
                 <label className="input-label">Nominal (Rp)</label>
                 <div className="input-wrapper">
-                  <CurrencyInput className="input-field" value={formData.amount} onChange={val => setFormData({...formData, amount: val})} />
+                  <CurrencyInput className="input-field" value={formData.amount as number} onChange={(val) => setFormData({...formData, amount: val as number})} />
                 </div>
               </div>
 
@@ -222,5 +222,4 @@ const RecurringTransactions = () => {
     </>
   );
 };
-
 export default RecurringTransactions;

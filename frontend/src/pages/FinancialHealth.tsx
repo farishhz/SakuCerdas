@@ -1,27 +1,36 @@
 import { useState, useEffect } from 'react';
-import { Newspaper, ExternalLink, Clock } from 'lucide-react';
+import { Newspaper, ExternalLink, Clock, TrendingUp, Activity } from 'lucide-react';
 import { newsService } from '../lib/newsService';
 import type { NewsArticle } from '../lib/newsService';
+import { bffService } from '../lib/services';
 
 const FinancialLiteracy = () => {
   const [news, setNews] = useState<NewsArticle[]>([]);
+  const [healthData, setHealthData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await newsService.getFinancialNews(40);
-        setNews(data);
+        
+        // Ambil data kesehatan finansial (BFF) dan Berita secara paralel
+        const [hResult, nData] = await Promise.all([
+          bffService.getFinancialHealth(),
+          newsService.getFinancialNews(40)
+        ]);
+
+        setHealthData(hResult.data);
+        setNews(nData);
       } catch (err: any) {
-        setError(err.message || 'Gagal memuat berita.');
+        setError(err.message || 'Gagal memuat data.');
       } finally {
         setLoading(false);
       }
     };
-    fetchNews();
+    fetchData();
   }, []);
 
   return (
@@ -33,6 +42,55 @@ const FinancialLiteracy = () => {
           <p>Update tren ekonomi dan strategi investasi terbaru untukmu.</p>
         </div>
       </div>
+
+      {healthData && (
+        <div className="dashboard-grid" style={{ marginBottom: '2rem' }}>
+          <div className="glass-card" style={{ background: 'var(--accent-grad)', color: 'white', border: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.9, fontWeight: 600 }}>Skor Kesehatan Finansial</div>
+                <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginTop: '0.25rem' }}>{healthData.score}/100</h2>
+              </div>
+              <div style={{ width: '48px', height: '48px', background: 'rgba(255,255,255,0.2)', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Activity size={24} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
+              <span className="tag" style={{ background: 'white', color: 'var(--purple)', border: 'none' }}>Status: {healthData.status}</span>
+            </div>
+            <p style={{ marginTop: '1rem', fontSize: '0.9rem', lineHeight: 1.5, opacity: 0.95 }}>
+              💡 {healthData.recommendation}
+            </p>
+          </div>
+
+          <div className="glass-card">
+            <div style={{ fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <TrendingUp size={16} className="text-purple" /> Metrik Utama
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.4rem' }}>
+                  <span className="text-muted">Savings Rate</span>
+                  <span style={{ fontWeight: 700 }}>{healthData.metrics.savingsRate}%</span>
+                </div>
+                <div className="progress-container">
+                  <div className="progress-fill" style={{ width: `${Math.max(0, healthData.metrics.savingsRate)}%` }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                 <div style={{ flex: 1 }}>
+                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Sisa Hutang</div>
+                   <div style={{ fontWeight: 700 }}>Rp{healthData.metrics.unpaidDebts.toLocaleString('id-ID')}</div>
+                 </div>
+                 <div style={{ flex: 1 }}>
+                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pemasukan</div>
+                   <div style={{ fontWeight: 700 }}>Rp{healthData.metrics.totalIncome.toLocaleString('id-ID')}</div>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div style={{ padding: '4rem', textAlign: 'center' }}>
@@ -50,7 +108,7 @@ const FinancialLiteracy = () => {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-          {news.map((item, idx) => (
+          {news.map((item: any, idx: number) => (
             <div key={idx} className="glass-card news-card-interactive" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
               {item.image && (
                 <div style={{ height: '180px', overflow: 'hidden', borderBottom: '1px solid var(--border)' }}>

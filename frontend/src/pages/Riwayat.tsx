@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowDownRight, ArrowUpRight, Plus, Trash2, Search, Calendar, FileText, Download } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
-import { transactionService, categoryService } from '../lib/services';
-import type { Transaction, Category } from '../lib/supabase';
+import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
 import StreakCelebration from '../components/StreakCelebration';
 import jsPDF from 'jspdf';
@@ -32,21 +31,17 @@ const Riwayat = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Data
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
 
-  // Form
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState<number | ''>('');
   const [catId, setCatId] = useState('');
   const [desc, setDesc] = useState('');
 
-  // Streak Celebration
   const [showStreak, setShowStreak] = useState(false);
   const [streakCount, setStreakCount] = useState(0);
 
-  // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCat, setFilterCat] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -54,12 +49,12 @@ const Riwayat = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [txs, cats] = await Promise.all([
-        transactionService.getAll(),
-        categoryService.getAll()
+      const [txResult, catResult] = await Promise.all([
+        bffService.getTransactions(),
+        bffService.getCategories()
       ]);
-      setTransactions(txs || []);
-      setCategories(cats || []);
+      setTransactions(txResult.data || []);
+      setCategories(catResult.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -75,7 +70,7 @@ const Riwayat = () => {
     if (!amount || !catId || amount <= 0) return;
     try {
       setSaving(true);
-      const result = await transactionService.create({
+      const result = await bffService.createTransaction({
         type, amount: Number(amount), category_id: catId, description: desc
       });
       
@@ -83,7 +78,6 @@ const Riwayat = () => {
       setAmount(''); setCatId(''); setDesc('');
       fetchData();
 
-      // Show Streak Celebration if incremented
       if (result.streakResult?.incremented) {
         setStreakCount(result.streakResult.newStreak);
         setShowStreak(true);
@@ -99,7 +93,7 @@ const Riwayat = () => {
   const handleDelete = async (id: string) => {
     if(!window.confirm('Hapus transaksi ini?')) return;
     try {
-      await transactionService.delete(id);
+      await bffService.deleteTransaction(id);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -111,13 +105,12 @@ const Riwayat = () => {
     try {
       const doc = new jsPDF();
       
-      // Header & Logo
       doc.setDrawColor(139, 92, 246);
       doc.setLineWidth(1);
-      doc.line(14, 25, 45, 25); // Underline for "SakuCerdas"
+      doc.line(14, 25, 45, 25);
       
       doc.setFontSize(22);
-      doc.setTextColor(139, 92, 246); // SakuCerdas Purple
+      doc.setTextColor(139, 92, 246);
       doc.setFont('helvetica', 'bold');
       doc.text('SakuCerdas', 14, 22);
       
@@ -167,20 +160,17 @@ const Riwayat = () => {
     XLSX.writeFile(workbook, `SakuCerdas_Laporan_${new Date().getTime()}.xlsx`);
   };
 
-  // Calc summary
   const totalIn = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalOut = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
 
-  // Calc Pie chart (Expenses by category)
   const expensesList = transactions.filter(t => t.type === 'expense');
   const pieMap: Record<string, number> = {};
   expensesList.forEach(t => {
     const cName = t.categories?.name || 'Lainnya';
     pieMap[cName] = (pieMap[cName] || 0) + t.amount;
   });
-  const pieData = Object.keys(pieMap).map(k => ({ name: k, value: pieMap[k] })).sort((a,b) => b.value - a.value).slice(0, 6); // top 6
+  const pieData = Object.keys(pieMap).map(k => ({ name: k, value: pieMap[k] })).sort((a,b) => b.value - a.value).slice(0, 6);
 
-  // Filtering
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = filterCat === '' || t.category_id === filterCat;
@@ -190,7 +180,6 @@ const Riwayat = () => {
     return matchesSearch && matchesCat && matchesStart && matchesEnd;
   });
 
-  // Comparison Data (This month vs Last Month)
   const comparisonData = (() => {
     const now = new Date();
     const thisMonth = now.getMonth();
@@ -216,11 +205,9 @@ const Riwayat = () => {
     return data;
   })();
 
-  // Calc Line Trend (Last 6 Months)
   const trendData = (() => {
     const map: Record<string, { masuk: number; keluar: number }> = {};
     const now = new Date();
-    // Initialize last 6 months
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const mName = d.toLocaleString('id-ID', { month: 'short' });
@@ -229,7 +216,6 @@ const Riwayat = () => {
     
     transactions.forEach(t => {
       const txDate = new Date(t.date);
-      // Only include if in the last 6 months roughly
       const mName = txDate.toLocaleString('id-ID', { month: 'short' });
       if (map[mName]) {
         if (t.type === 'income') map[mName].masuk += t.amount;
@@ -290,7 +276,6 @@ const Riwayat = () => {
         )}
       </div>
 
-      {/* Summary */}
       <div className="dashboard-grid">
         <div className="glass-card">
           <div className="card-header">
@@ -368,7 +353,6 @@ const Riwayat = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           
-          {/* Comparison Bar Chart */}
           <div className="glass-card" style={{ gridColumn: 'span 2' }}>
             <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>Perbandingan Pengeluaran & Pemasukan</div>
             <ResponsiveContainer width="100%" height={260}>
@@ -384,7 +368,6 @@ const Riwayat = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* Donut */}
           <div className="glass-card">
             <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>Breakdown Kategori Pengeluaran</div>
             {pieData.length > 0 ? (
@@ -418,7 +401,6 @@ const Riwayat = () => {
             )}
           </div>
 
-          {/* Line Chart */}
           <div className="glass-card">
             <div style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '0.95rem' }}>Tren 6 Bulan Terakhir</div>
             <ResponsiveContainer width="100%" height={220}>
@@ -436,7 +418,6 @@ const Riwayat = () => {
         </div>
       )}
 
-      {/* Catat Transaksi Modal */}
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -462,7 +443,7 @@ const Riwayat = () => {
 
             <div className="input-group">
               <label className="input-label">Nominal (Rp)</label>
-              <div className="input-wrapper"><CurrencyInput className="input-field" value={amount} onChange={setAmount} /></div>
+              <div className="input-wrapper"><CurrencyInput className="input-field" value={amount as number} onChange={(val) => setAmount(val as number || '')} /></div>
             </div>
 
             <div className="input-group">

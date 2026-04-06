@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownRight, Wallet } from 'lucide-react';
-import { transactionService } from '../lib/services';
+import { bffService } from '../lib/services';
 
 const FinancialCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -9,12 +9,11 @@ const FinancialCalendar = () => {
 
   const fetchTransactions = async () => {
     try {
-      // Fetch for the current month
-      const data = await transactionService.getAll({
+      const res = await bffService.getTransactions({
         month: currentDate.getMonth() + 1,
         year: currentDate.getFullYear()
       });
-      setTransactions(data || []);
+      setTransactions(res.data || []);
     } catch (err) {
       console.error(err);
     }
@@ -66,7 +65,6 @@ const FinancialCalendar = () => {
     const start = firstDayOfMonth(month, year);
     
     const cells = [];
-    // Padding for prev month
     for (let i = 0; i < start; i++) {
       cells.push(<div key={`pad-${i}`} className="calendar-cell empty" />);
     }
@@ -174,5 +172,4 @@ const FinancialCalendar = () => {
     </div>
   );
 };
-
 export default FinancialCalendar;

@@ -12,7 +12,6 @@ const Register = () => {
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
-  // Auto-redirect if already logged in
   useEffect(() => {
     authService.getCurrentUser().then(user => {
       if (user) navigate('/dashboard', { replace: true });

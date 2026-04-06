@@ -54,9 +54,10 @@ Untuk teknis instalasi secara detail (termasuk SQL Schema untuk Supabase), silak
 ## 🛠️ Tech Stack
 
 -   **Frontend**: React.js, Vite, TypeScript.
+-   **Backend**: Node.js, Express.
+-   **Database/Auth**: Supabase.
 -   **Styling**: Custom Vanilla CSS.
--   **Backend/Database**: Supabase (Database & Authentication).
--   **API Eksternal**: GNews API (News Literacy).
+-   **API Eksternal**: GNews API.
 -   **Icons**: Lucide React.
 
 ---
@@ -68,53 +69,58 @@ Pastikan Anda sudah menginstal:
 -   [Node.js](https://nodejs.org/) (Versi 18 atau lebih baru)
 -   npm (Biasanya terinstal bersama Node.js)
 
-### 2. Kloning Repositori
+### 2. Kloning & Instalasi
 ```bash
 git clone https://github.com/farishhz/SakuCerdas.git
 cd SakuCerdas
-```
 
-### 3. Penyiapan Frontend
-Masuk ke direktori frontend, instal dependensi, dan siapkan file `.env`:
-```bash
-cd frontend
+# Instal Backend
+cd backend
+npm install
+
+# Instal Frontend
+cd ../frontend
 npm install
 ```
 
-### 4. Konfigurasi Environment Variable
-Buat file bernama `.env` di dalam folder `frontend` dan tambahkan variabel berikut (tanpa tanda kutip):
+### 3. Konfigurasi Environment Variable
+
+**Backend (`backend/.env`):**
+```env
+SUPABASE_URL=YOUR_SUPABASE_URL
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+PORT=8000
+```
+
+**Frontend (`frontend/.env`):**
 ```env
 VITE_SUPABASE_URL=YOUR_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+VITE_SERVER_URL=http://localhost:8000/api
 VITE_GNEWS_API_KEY=YOUR_GNEWS_API_KEY
-VITE_APP_NAME=SakuCerdas
-VITE_APP_URL=http://localhost:5173
 ```
-> [!IMPORTANT]
-> Jangan pernah mengunggah file `.env` asli ke GitHub. Gunakan `.env.example` sebagai referensi bagi kontributor lain.
 
 ---
 
 ## 🚀 Cara Menjalankan
 
-### Mode Pengembangan (Development)
+### 1. Jalankan Backend
 ```bash
-# Di dalam folder frontend
+cd backend
+npm run dev
+```
+
+### 2. Jalankan Frontend
+```bash
+cd frontend
 npm run dev
 ```
 Aplikasi akan berjalan di: `http://localhost:5173`
 
-### Mode Produksi (Build)
-```bash
-npm run build
-```
-Hasil build akan tersimpan di folder `dist`.
-
 ---
 
-## 🌐 Informasi Penting Lainnya
-
--   **Proxy API**: Untuk menghindari masalah CORS pada GNews API di produksi, aplikasi menggunakan Vercel Serverless Functions yang terletak di folder `frontend/api/`.
+## 🛡️ Arsitektur BFF (Backend-For-Frontend)
+SakuCerdas menggunakan pola **BFF** untuk memisahkan logika bisnis dari antarmuka pengguna. Seluruh kalkulasi skor kesehatan finansial, pengelolaan target, dan pengolahan data transaksi diproses di server Node.js sebelum dikirim ke frontend, sehingga performa aplikasi di sisi klien tetap ringan dan aman.
 
 ---
 

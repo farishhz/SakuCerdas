@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Target as TargetIcon, CheckCircle, Trash2 } from 'lucide-react';
-import { targetService } from '../lib/services';
+import { bffService } from '../lib/services';
 import type { Target } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
 
@@ -20,8 +20,8 @@ const TargetImpian = () => {
   const fetchTargets = async () => {
     try {
       setLoading(true);
-      const data = await targetService.getAll();
-      setTargets(data || []);
+      const result = await bffService.getTargets();
+      setTargets(result.data || []);
     } catch (err) {
       console.error('Failed to fetch targets:', err);
     } finally {
@@ -41,7 +41,11 @@ const TargetImpian = () => {
     if (!selected || addAmt <= 0) return;
     try {
       setSaving(true);
-      await targetService.deposit(selected.id, addAmt, 'Deposit manual UI');
+      await bffService.depositTarget({ 
+        targetId: selected.id, 
+        amount: addAmt, 
+        note: 'Deposit manual UI' 
+      });
       setModal(false);
       fetchTargets();
     } catch (err: any) {
@@ -56,7 +60,7 @@ const TargetImpian = () => {
     if (!newName || newTarget <= 0) return;
     try {
       setSaving(true);
-      await targetService.create({ name: newName, target_amount: newTarget });
+      await bffService.createTarget({ name: newName, target_amount: newTarget });
       setNewName(''); setNewTarget(1000000); setAddModal(false);
       fetchTargets();
     } catch (err) {
@@ -70,7 +74,7 @@ const TargetImpian = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Hapus target ini?')) return;
     try {
-      await targetService.delete(id);
+      await bffService.deleteTarget(id);
       fetchTargets();
     } catch (err) {
       console.error(err);

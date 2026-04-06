@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ShieldCheck, ArrowRight, CheckCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { targetService } from '../lib/services';
+import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
 
 const DanaDarurat = () => {
@@ -17,16 +16,10 @@ const DanaDarurat = () => {
   useEffect(() => {
     const fetchExisting = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const res = await bffService.getEmergencyFund();
+        const data = res.data;
 
-        const { data, error } = await supabase
-          .from('emergency_fund')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (data && !error) {
+        if (data) {
           setMarried(data.marital_status);
           setTanggungan(data.dependants);
           setPengeluaran(data.monthly_expenses);
@@ -56,31 +49,15 @@ const DanaDarurat = () => {
 
     try {
       setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
       const payload = {
-        user_id: user.id,
         marital_status: married,
         dependants: tanggungan,
         monthly_expenses: pengeluaran,
         multiplier,
-        target_amount: amount,
-        updated_at: new Date().toISOString()
+        target_amount: amount
       };
       
-      const { data: existing } = await supabase
-        .from('emergency_fund')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-        
-      if (existing) {
-        await supabase.from('emergency_fund').update(payload).eq('id', existing.id);
-      } else {
-        await supabase.from('emergency_fund').insert(payload);
-      }
-
+      await bffService.saveEmergencyFund(payload);
       setStep('result');
     } catch (err) {
       console.error(err);
@@ -94,7 +71,7 @@ const DanaDarurat = () => {
     if (result.amount <= 0) return;
     try {
       setSaving(true);
-      await targetService.create({ name: 'Dana Darurat', target_amount: result.amount });
+      await bffService.createTarget({ name: 'Dana Darurat', target_amount: result.amount });
       alert('Target Dana Darurat berhasil dibuat di halaman Target Impian!');
     } catch (err) {
       console.error(err);

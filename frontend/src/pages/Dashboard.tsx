@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Wallet, Target as TargetIcon, Zap, ArrowUpRight, ArrowDownRight, PiggyBank, Flame, Newspaper } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { targetService, transactionService, budgetService } from '../lib/services';
+import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
 import StreakCelebration from '../components/StreakCelebration';
 import { Link } from 'react-router-dom';
@@ -21,7 +20,6 @@ const Dashboard = () => {
   const [saving, setSaving]               = useState(false);
   const [streak, setStreak]               = useState(0);
 
-  // Streak Celebration
   const [showStreak, setShowStreak]       = useState(false);
   const [streakCount, setStreakCount]     = useState(0);
   const [newsList, setNewsList]           = useState<NewsArticle[]>([]);
@@ -30,66 +28,15 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const result = await bffService.getDashboardSummary();
+      const { userName, summary, targets, streak, budgetAlerts } = result.data;
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-      if (profile?.full_name) setUserName(profile.full_name.split(' ')[0]);
+      setUserName(userName);
+      setSummary(summary);
+      setTargets(targets);
+      setStreak(streak);
+      setBudgetAlerts(budgetAlerts);
 
-      const s = await transactionService.getSummary();
-      setSummary(s);
-
-      // Ambil SEMUA target impian
-      const allTargets = await targetService.getAll();
-      if (allTargets && allTargets.length > 0) {
-        // Sort by progress for slightly better visual priority
-        const sorted = [...allTargets].sort((a, b) => {
-          const pctA = a.current_amount / a.target_amount;
-          const pctB = b.current_amount / b.target_amount;
-          return pctB - pctA;
-        });
-        setTargets(sorted);
-      } else {
-        setTargets([]);
-      }
-
-      // Ambil Streak
-      const { data: streakData } = await supabase
-        .from('saving_streaks')
-        .select('current_streak')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (streakData) setStreak(streakData.current_streak);
-
-      // Ambil budget alerts
-      const budgets = await budgetService.getAll();
-      if (budgets) {
-        const now = new Date();
-        const expenses = await transactionService.getAll({
-          month: now.getMonth() + 1,
-          year: now.getFullYear(),
-          type: 'expense',
-        });
-
-        const alerts = budgets.map((b: any) => {
-          const spent = expenses
-            ?.filter((t: any) => t.category_id === b.category_id)
-            .reduce((sum: number, t: any) => sum + t.amount, 0) ?? 0;
-          return { ...b, spent, pct: Math.round((spent / b.limit_amount) * 100) };
-        }).filter((b: any) => b.pct >= 80);
-
-        setBudgetAlerts(alerts);
-      }
-
-      // Ambil streak
-      const { data: sData } = await supabase.from('saving_streaks').select('current_streak').eq('user_id', user.id).maybeSingle();
-      if (sData) setStreak(sData.current_streak);
-
-      // Ambil berita terbaru
       const news = await newsService.getFinancialNews(3);
       setNewsList(news);
     } catch (err) {
@@ -106,14 +53,17 @@ const Dashboard = () => {
     if (!nabungAmt || nabungAmt <= 0) return alert('Masukkan nominal yang valid!');
     try {
       setSaving(true);
-      const result = await targetService.deposit(selectedTarget.id, nabungAmt as number, 'Nabung Kilat from Dashboard');
+      const result = await bffService.depositTarget({
+        targetId: selectedTarget.id,
+        amount: nabungAmt as number,
+        note: 'Nabung Kilat from Dashboard'
+      });
       
       alert(`Berhasil nabung Rp${Number(nabungAmt).toLocaleString('id-ID')} untuk ${selectedTarget.name}!`);
       setModalOpen(false);
       setNabungAmt('');
       fetchAll();
 
-      // Show Streak Celebration if incremented
       if (result.streakResult?.incremented) {
         setStreakCount(result.streakResult.newStreak);
         setShowStreak(true);
@@ -133,9 +83,9 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: 'Saldo Bersih', value: `Rp${summary.balance.toLocaleString('id-ID')}`, icon: Wallet, change: '+12%', up: true },
-    { label: 'Pemasukan Bulan Ini', value: `Rp${summary.totalIncome.toLocaleString('id-ID')}`, icon: ArrowDownRight, change: '+0%', up: true },
-    { label: 'Pengeluaran Bulan Ini', value: `Rp${summary.totalExpense.toLocaleString('id-ID')}`, icon: ArrowUpRight, change: '-5%', up: false },
+    { label: 'Saldo Bersih', value: `Rp${(summary.balance ?? 0).toLocaleString('id-ID')}`, icon: Wallet, change: '+12%', up: true },
+    { label: 'Pemasukan Bulan Ini', value: `Rp${(summary.totalIncome ?? 0).toLocaleString('id-ID')}`, icon: ArrowDownRight, change: '+0%', up: true },
+    { label: 'Pengeluaran Bulan Ini', value: `Rp${(summary.totalExpense ?? 0).toLocaleString('id-ID')}`, icon: ArrowUpRight, change: '-5%', up: false },
   ];
 
   return (
@@ -156,7 +106,6 @@ const Dashboard = () => {
             </div>
           </div>
         
-        {/* Stats */}
         <div className="dashboard-grid">
           {stats.map((s) => (
             <div key={s.label} className="glass-card">
@@ -169,7 +118,6 @@ const Dashboard = () => {
             </div>
           ))}
 
-          {/* Literacy Cards */}
           {newsList.length > 0 ? (
             newsList.map((item, idx) => (
               <Link key={idx} to="/kesehatan" className="glass-card" style={{ background: 'var(--accent-grad-soft)', borderColor: 'rgba(139,92,246,0.2)', transition: 'all 0.2s', cursor: 'pointer', display: 'block', textDecoration: 'none' }}>
@@ -209,7 +157,6 @@ const Dashboard = () => {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', alignItems: 'start', marginTop: '1rem' }}>
           
-          {/* Kolom Kiri: Target Impian */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
               <div>
@@ -236,7 +183,7 @@ const Dashboard = () => {
                       </div>
                       <div className="progress-header" style={{ marginTop: '0.5rem' }}>
                         <span className="text-muted" style={{ fontSize: '0.82rem' }}>
-                          Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
+                          Rp{(t.current_amount ?? 0).toLocaleString('id-ID')} / Rp{(t.target_amount ?? 0).toLocaleString('id-ID')}
                         </span>
                         <span style={{ fontWeight: 700, color: done ? 'var(--success)' : '' }}>{pct}%</span>
                       </div>
@@ -252,7 +199,6 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Kolom Kanan: Budget Alerts */}
           {budgetAlerts.length > 0 && (
             <div className="glass-card" style={{ borderColor: 'rgba(239,68,68,0.2)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -272,7 +218,7 @@ const Dashboard = () => {
                     <div className={`progress-fill ${b.pct > 100 ? 'danger' : 'warning'}`} style={{ width: `${Math.min(b.pct, 100)}%` }} />
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    Rp{b.spent.toLocaleString('id-ID')} / Rp{b.limit_amount.toLocaleString('id-ID')}
+                    Rp{(b.spent ?? 0).toLocaleString('id-ID')} / Rp{(b.limit_amount ?? 0).toLocaleString('id-ID')}
                   </div>
                 </div>
               ))}
@@ -281,7 +227,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Nabung Kilat Modal */}
       {modalOpen && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
