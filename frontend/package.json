@@ -36,10 +36,12 @@
     "globals": "^17.4.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
-    "vite": "^6.0.0"
+    "vite": "6.0.1"
   },
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "latest",
-    "@rolldown/binding-win32-x64-msvc": "latest"
+    "@rolldown/binding-win32-x64-msvc": "latest",
+    "@lightningcss/linux-x64-gnu": "latest",
+    "@lightningcss/win32-x64-msvc": "latest"
   }
 }
