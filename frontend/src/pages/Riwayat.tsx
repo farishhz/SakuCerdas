@@ -250,7 +250,7 @@ const Riwayat = () => {
 
         {tab === 'list' && (
           <div style={{ display: 'flex', flex: 1, gap: '0.75rem', flexWrap: 'wrap' }}>
-            <div className="input-wrapper" style={{ flex: 1, minWidth: '150px' }}>
+            <div className="input-wrapper" style={{ flex: 1, minWidth: '150px', position: 'relative' }}>
                <Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                <input type="text" placeholder="Cari..." className="input-field" style={{ paddingLeft: '2.5rem', fontSize: '0.85rem' }} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>

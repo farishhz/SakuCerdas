@@ -11,6 +11,7 @@ import { getDebts, createDebt, toggleDebtPaid, deleteDebt } from '../controllers
 import { getRecurring, createRecurring, toggleRecurringActive, deleteRecurring } from '../controllers/recurringController.js';
 import { getCategories } from '../controllers/categoryController.js';
 import { getProfile, updateProfile, getBadges, getActivityLogs } from '../controllers/userController.js';
+import { getWallets, createWallet, deleteWallet } from '../controllers/walletController.js';
 
 const router = express.Router();
 
@@ -25,6 +26,10 @@ router.get('/profile', getProfile);
 router.patch('/profile', updateProfile);
 router.get('/badges', getBadges);
 router.get('/activity-logs', getActivityLogs);
+
+router.get('/wallets', getWallets);
+router.post('/wallets', createWallet);
+router.delete('/wallets/:id', deleteWallet);
 
 router.get('/transactions', getTransactions);
 router.post('/transactions', createTransaction);

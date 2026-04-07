@@ -205,6 +205,28 @@ export const bffService = {
     return res.json();
   },
 
+  async getWallets() {
+    const res = await fetch(`${API_BASE_URL}/wallets`, { headers: await getHeaders() });
+    return res.json();
+  },
+
+  async createWallet(payload: any) {
+    const res = await fetch(`${API_BASE_URL}/wallets`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  },
+
+  async deleteWallet(id: string) {
+    const res = await fetch(`${API_BASE_URL}/wallets/${id}`, {
+      method: 'DELETE',
+      headers: await getHeaders()
+    });
+    return res.json();
+  },
+
   async getActivityLogs(limit = 5) {
     const res = await fetch(`${API_BASE_URL}/activity-logs?limit=${limit}`, { headers: await getHeaders() });
     return res.json();

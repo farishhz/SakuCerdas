@@ -18,9 +18,13 @@ const BottomNav = () => (
         { path: '/kesehatan', icon: Newspaper, label: 'Literasi' },
         { path: '/profile', icon: User, label: 'Profil' },
       ].map(({ path, icon: Icon, label }) => (
-        <NavLink key={path} to={path} className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
-          <Icon size={20} />
-          <span className="nav-label">{label}</span>
+        <NavLink key={path} to={path} className={({ isActive }) => `bottom-nav-item haptic-press ${isActive ? 'active' : ''}`}>
+          {({ isActive }) => (
+            <>
+              <Icon size={20} strokeWidth={isActive ? 3 : 2} />
+              <span className="nav-label">{label}</span>
+            </>
+          )}
         </NavLink>
       ))}
     </div>

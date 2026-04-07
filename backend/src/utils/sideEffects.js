@@ -7,9 +7,10 @@ export const addXP = async (userId, token, amount) => {
     if (!profile) return;
     const newXP = (profile.xp || 0) + amount;
     let newLevel = 'Newbie';
-    if (newXP >= 100) newLevel = 'Hemat Ranger';
-    if (newXP >= 300) newLevel = 'Master Cuan';
-    if (newXP >= 600) newLevel = 'Sultan';
+    if (newXP >= 100) newLevel = 'Saver Apprentice';
+    if (newXP >= 300) newLevel = 'Budget Master';
+    if (newXP >= 700) newLevel = 'Wealth Architect';
+    if (newXP >= 1500) newLevel = 'Financial Legend';
     await supabase.from('profiles').update({ xp: newXP, level: newLevel }).eq('id', userId);
   } catch (err) {
     console.error('Failed to add XP', err);
