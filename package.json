@@ -14,5 +14,10 @@
     "build:front": "npm run build --prefix frontend",
     "build": "npm run build --prefix frontend",
     "start": "npm start --prefix backend"
+  },
+  "supportedArchitectures": {
+    "os": ["linux", "win32"],
+    "cpu": ["x64", "arm64"],
+    "libc": ["glibc"]
   }
 }
