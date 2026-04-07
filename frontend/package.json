@@ -41,7 +41,13 @@
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "latest",
     "@rolldown/binding-win32-x64-msvc": "latest",
-    "@lightningcss/linux-x64-gnu": "latest",
-    "@lightningcss/win32-x64-msvc": "latest"
+    "lightningcss-linux-x64-gnu": "latest",
+    "lightningcss-win32-x64-msvc": "latest",
+    "lightningcss": "latest"
+  },
+  "supportedArchitectures": {
+    "os": ["linux", "win32"],
+    "cpu": ["x64", "arm64"],
+    "libc": ["glibc"]
   }
 }
