@@ -77,6 +77,12 @@ const Dashboard = () => {
 
     const current = Number(selectedTarget.current_amount);
     const target = Number(selectedTarget.target_amount);
+    const availableBalance = data?.summary?.balance || 0;
+
+    if (Number(nabungAmt) > availableBalance) {
+      return showToast(`Saldo tidak cukup! Saldo kamu: Rp${availableBalance.toLocaleString('id-ID')}`, 'error');
+    }
+
     if (current + Number(nabungAmt) > target) {
       return showToast(`Oops! Tabungan kamu melebihi target. Sisa: Rp${(target - current).toLocaleString('id-ID')}`, 'error');
     }

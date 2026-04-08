@@ -74,6 +74,8 @@ const Riwayat = () => {
   const [amount, setAmount] = useState<number | ''>('');
   const [catId, setCatId] = useState('');
   const [desc, setDesc] = useState('');
+  const [userBalance, setUserBalance] = useState(0);
+  const [hasWallets, setHasWallets] = useState(true);
 
   const [showStreak, setShowStreak] = useState(false);
   const [streakCount, setStreakCount] = useState(0);
@@ -85,12 +87,15 @@ const Riwayat = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [txResult, catResult] = await Promise.all([
+      const [txResult, catResult, sumResult] = await Promise.all([
         bffService.getTransactions(),
-        bffService.getCategories()
+        bffService.getCategories(),
+        bffService.getDashboardSummary()
       ]);
       setTransactions(txResult.data || []);
       setCategories(catResult.data || []);
+      setUserBalance(sumResult.data?.summary?.balance || 0);
+      setHasWallets((sumResult.data?.wallets || []).length > 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -103,7 +108,14 @@ const Riwayat = () => {
   }, []);
 
   const handleAdd = async () => {
-    if (!amount || !catId || amount <= 0) return;
+    if (!hasWallets) return showToast('Kamu belum punya dompet! Tambah dompet di Dashboard dulu ya.', 'error');
+    if (!amount || amount <= 0) return showToast('Masukkan nominal yang valid!', 'error');
+    if (!catId) return showToast('Pilih kategori transaksi dulu!', 'error');
+
+    if (type === 'expense' && amount > userBalance) {
+      return showToast(`Saldo tidak cukup! Saldo kamu: Rp${userBalance.toLocaleString('id-ID')}`, 'error');
+    }
+
     try {
       setSaving(true);
       const result = await bffService.createTransaction({
@@ -503,7 +515,7 @@ const Riwayat = () => {
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setModal(false)}>Batal</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd} disabled={saving || !amount || !catId}>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd} disabled={saving}>
                 {saving ? 'Menyimpan...' : 'Simpan Transaksi'}
               </button>
             </div>

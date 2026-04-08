@@ -37,6 +37,8 @@ const DebtLoans = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
+  const [hasWallets, setHasWallets] = useState(true);
 
   const [formData, setFormData] = useState({
     type: 'debt' as 'debt' | 'loan',
@@ -49,8 +51,13 @@ const DebtLoans = () => {
   const fetchDebts = async () => {
     try {
       setLoading(true);
-      const res = await bffService.getDebts();
-      setDebts(res.data || []);
+      const [debtRes, sumRes] = await Promise.all([
+        bffService.getDebts(),
+        bffService.getDashboardSummary()
+      ]);
+      setDebts(debtRes.data || []);
+      setUserBalance(sumRes.data?.summary?.balance || 0);
+      setHasWallets((sumRes.data?.wallets || []).length > 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -64,7 +71,12 @@ const DebtLoans = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!hasWallets) return showToast('Tambah dompet dulu di Dashboard!', 'error');
     if (!formData.person_name || !formData.amount) return showToast('Nama dan nominal wajib diisi!', 'error');
+
+    if (formData.type === 'loan' && Number(formData.amount) > userBalance) {
+      return showToast(`Saldo tidak cukup untuk meminjamkan! Saldo kamu: Rp${userBalance.toLocaleString('id-ID')}`, 'error');
+    }
 
     try {
       setSaving(true);
@@ -85,7 +97,12 @@ const DebtLoans = () => {
     }
   };
 
-  const handleTogglePaid = async (id: string, currentStatus: boolean) => {
+  const handleTogglePaid = async (id: string, currentStatus: boolean, amount: number, type: string) => {
+    if (!hasWallets) return showToast('Tambah dompet dulu di Dashboard!', 'error');
+    if (!currentStatus && type === 'debt' && amount > userBalance) {
+      return showToast(`Saldo tidak cukup untuk melunasi hutang! Saldo kamu: Rp${userBalance.toLocaleString('id-ID')}`, 'error');
+    }
+
     try {
       await bffService.toggleDebtPaid(id, !currentStatus);
       fetchDebts();
@@ -180,7 +197,7 @@ const DebtLoans = () => {
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className={`btn ${d.is_paid ? 'btn-ghost' : 'btn-success'}`} style={{ padding: '0.5rem' }} onClick={() => handleTogglePaid(d.id, d.is_paid)}>
+                      <button className={`btn ${d.is_paid ? 'btn-ghost' : 'btn-success'}`} style={{ padding: '0.5rem' }} onClick={() => handleTogglePaid(d.id, d.is_paid, d.amount, d.type)}>
                         <CheckCircle2 size={16} />
                       </button>
                       <button className="btn btn-ghost" style={{ padding: '0.5rem', color: 'var(--danger)' }} onClick={() => handleDelete(d.id)}>

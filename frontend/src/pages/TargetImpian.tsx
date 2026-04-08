@@ -47,15 +47,22 @@ const TargetImpian = () => {
   const [newName, setNewName]   = useState('');
   const [newTarget, setNewTarget] = useState(1000000);
   const [saving, setSaving] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
+  const [hasWallets, setHasWallets] = useState(true);
 
   const fetchTargets = async () => {
     try {
       setLoading(true);
-      const result = await bffService.getTargets();
-      setTargets(result.data || []);
+      const [targetResult, sumResult] = await Promise.all([
+        bffService.getTargets(),
+        bffService.getDashboardSummary()
+      ]);
+      setTargets(targetResult.data || []);
+      setUserBalance(sumResult.data?.summary?.balance || 0);
+      setHasWallets((sumResult.data?.wallets || []).length > 0);
       
       // Check if any target just reached 100% (basic heuristic)
-      result.data?.forEach((t: Target) => {
+      targetResult.data?.forEach((t: Target) => {
         if (t.current_amount >= t.target_amount && !t.is_completed) {
           confetti({
             particleCount: 150,
@@ -82,7 +89,12 @@ const TargetImpian = () => {
   const openAdd = (t: Target) => { setSelected(t); setModal(true); setAddAmt(50000); };
   
   const handleAdd = async () => {
+    if (!hasWallets) return showToast('Kamu belum punya dompet! Tambah dompet di Dashboard dulu ya.', 'error');
     if (!selected || addAmt <= 0) return;
+    if (addAmt > userBalance) {
+      return showToast(`Saldo tidak cukup! Saldo kamu: Rp${userBalance.toLocaleString('id-ID')}`, 'error');
+    }
+    
     try {
       setSaving(true);
       await bffService.depositTarget({ 
@@ -102,7 +114,8 @@ const TargetImpian = () => {
   };
 
   const handleCreate = async () => {
-    if (!newName || newTarget <= 0) return;
+    if (!hasWallets) return showToast('Tambah dompet dulu di Dashboard ya!', 'error');
+    if (!newName || newTarget <= 0) return showToast('Masukkan nama dan nominal target!', 'error');
     try {
       setSaving(true);
       await bffService.createTarget({ name: newName, target_amount: newTarget });
