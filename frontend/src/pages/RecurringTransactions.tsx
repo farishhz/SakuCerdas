@@ -2,8 +2,39 @@ import { useState, useEffect } from 'react';
 import { Repeat, Plus, Trash2, Power, PowerOff, Calendar, Tag, CreditCard } from 'lucide-react';
 import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
+import Skeleton from '../components/Skeleton';
+import { useToast } from '../context/ToastContext';
+
+const RecurringSkeleton = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    {[1, 2, 3].map(i => (
+      <div key={i} className="glass-card" style={{ padding: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <Skeleton width="1.8rem" height="1.8rem" borderRadius="0.5rem" />
+            <div>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Skeleton width="120px" height="1rem" />
+                <Skeleton width="60px" height="1rem" borderRadius="1rem" />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <Skeleton width="80px" height="0.8rem" />
+                <Skeleton width="60px" height="0.8rem" />
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Skeleton width="2rem" height="2rem" borderRadius="0.5rem" />
+            <Skeleton width="2rem" height="2rem" borderRadius="0.5rem" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const RecurringTransactions = () => {
+  const { showToast } = useToast();
   const [recurring, setRecurring] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +72,7 @@ const RecurringTransactions = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.amount || !formData.description) return alert('Nominal dan deskripsi wajib diisi!');
+    if (!formData.amount || !formData.description) return showToast('Nominal dan deskripsi wajib diisi!', 'error');
 
     try {
       setSaving(true);
@@ -56,9 +87,10 @@ const RecurringTransactions = () => {
         interval: 'monthly', next_date: new Date().toISOString().split('T')[0] 
       });
       fetchData();
-    } catch (err) {
+      showToast('Transaksi rutin dijadwalkan!', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal menyimpan data.');
+      showToast(err.message || 'Gagal menyimpan data', 'error');
     } finally {
       setSaving(false);
     }
@@ -78,8 +110,10 @@ const RecurringTransactions = () => {
     try {
       await bffService.deleteRecurring(id);
       fetchData();
+      showToast('Transaksi dihapus', 'info');
     } catch (err) {
       console.error(err);
+      showToast('Gagal menghapus', 'error');
     }
   };
 
@@ -100,7 +134,7 @@ const RecurringTransactions = () => {
         <div className="glass-card">
           <h3 style={{ marginBottom: '1.5rem', fontWeight: 700 }}>Daftar Transaksi Rutin</h3>
           {loading ? (
-            <p>Memuat data...</p>
+            <RecurringSkeleton />
           ) : recurring.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem 0' }}>
                <Calendar size={48} className="text-muted" style={{ opacity: 0.3, marginBottom: '1rem' }} />

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { ShieldCheck, ArrowRight, CheckCircle } from 'lucide-react';
 import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
+import { useToast } from '../context/ToastContext';
 
 const DanaDarurat = () => {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<'form' | 'result'>('form');
   
@@ -59,9 +61,10 @@ const DanaDarurat = () => {
       
       await bffService.saveEmergencyFund(payload);
       setStep('result');
-    } catch (err) {
+      showToast('Dana darurat diperbarui!', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal menyimpan perhitungan');
+      showToast(err.message || 'Gagal menyimpan perhitungan', 'error');
     } finally {
       setSaving(false);
     }
@@ -72,10 +75,10 @@ const DanaDarurat = () => {
     try {
       setSaving(true);
       await bffService.createTarget({ name: 'Dana Darurat', target_amount: result.amount });
-      alert('Target Dana Darurat berhasil dibuat di halaman Target Impian!');
-    } catch (err) {
+      showToast('Target Dana Darurat berhasil dibuat!', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal membuat Target Impian. Mungkin target serupa sudah ada.');
+      showToast(err.message || 'Gagal membuat Target Impian', 'error');
     } finally {
       setSaving(false);
     }

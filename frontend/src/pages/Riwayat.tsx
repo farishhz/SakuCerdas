@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAx
 import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
 import Skeleton from '../components/Skeleton';
+import { useToast } from '../context/ToastContext';
 
 const TableSkeleton = () => (
   <div className="glass-card" style={{ overflowX: 'auto', marginTop: '1rem' }}>
@@ -60,6 +61,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<
 };
 
 const Riwayat = () => {
+  const { showToast } = useToast();
   const [tab, setTab] = useState<'list' | 'chart'>('list');
   const [modal, setModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -111,6 +113,7 @@ const Riwayat = () => {
       setModal(false);
       setAmount(''); setCatId(''); setDesc('');
       fetchData();
+      showToast('Transaksi berhasil dicatat!', 'success');
 
       if (result.streakResult?.incremented) {
         setStreakCount(result.streakResult.newStreak);
@@ -118,7 +121,7 @@ const Riwayat = () => {
       }
     } catch (err) {
       console.error(err);
-      alert('Gagal menambah transaksi');
+      showToast('Gagal menambah transaksi', 'error');
     } finally {
       setSaving(false);
     }
@@ -129,9 +132,10 @@ const Riwayat = () => {
     try {
       await bffService.deleteTransaction(id);
       fetchData();
+      showToast('Transaksi dihapus', 'info');
     } catch (err) {
       console.error(err);
-      alert('Gagal menghapus');
+      showToast('Gagal menghapus', 'error');
     }
   };
 

@@ -40,22 +40,34 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate('/login', { replace: true });
-      }
-      setLoading(false);
-    });
+    let isMounted = true;
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (isMounted) {
         if (!session) {
           navigate('/login', { replace: true });
+        }
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isMounted) return;
+        
+        if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
+          navigate('/login', { replace: true });
+        } else if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          // Stay on current page or handle as needed
         }
       }
     );
 
     return () => {
+      isMounted = false;
       authListener.subscription.unsubscribe();
     };
   }, [navigate]);
@@ -73,6 +85,8 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+import { ToastProvider } from './context/ToastContext';
+
 function App() {
   React.useEffect(() => {
     const defaultTheme = localStorage.getItem('theme') || 'sakucerdas';
@@ -80,28 +94,30 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/"                    element={<LandingPage />} />
-          <Route path="/login"               element={<Login />} />
-          <Route path="/register"            element={<Register />} />
-          <Route path="/dashboard"           element={<AuthLayout><Dashboard /></AuthLayout>} />
-          <Route path="/target-impian"       element={<AuthLayout><TargetImpian /></AuthLayout>} />
-          <Route path="/simulasi-investasi"  element={<AuthLayout><SimulasiInvestasi /></AuthLayout>} />
-          <Route path="/riwayat"             element={<AuthLayout><Riwayat /></AuthLayout>} />
-          <Route path="/profile"             element={<AuthLayout><Profile /></AuthLayout>} />
-          <Route path="/budget"              element={<AuthLayout><Budget /></AuthLayout>} />
-          <Route path="/dana-darurat"        element={<AuthLayout><DanaDarurat /></AuthLayout>} />
-          <Route path="/zakat"               element={<AuthLayout><Zakat /></AuthLayout>} />
-          <Route path="/rutin"               element={<AuthLayout><RecurringTransactions /></AuthLayout>} />
-          <Route path="/hutang"              element={<AuthLayout><DebtLoans /></AuthLayout>} />
-          <Route path="/kesehatan"           element={<AuthLayout><FinancialLiteracy /></AuthLayout>} />
-          <Route path="/kalender"            element={<AuthLayout><FinancialCalendar /></AuthLayout>} />
-          <Route path="*"                    element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/"                    element={<LandingPage />} />
+            <Route path="/login"               element={<Login />} />
+            <Route path="/register"            element={<Register />} />
+            <Route path="/dashboard"           element={<AuthLayout><Dashboard /></AuthLayout>} />
+            <Route path="/target-impian"       element={<AuthLayout><TargetImpian /></AuthLayout>} />
+            <Route path="/simulasi-investasi"  element={<AuthLayout><SimulasiInvestasi /></AuthLayout>} />
+            <Route path="/riwayat"             element={<AuthLayout><Riwayat /></AuthLayout>} />
+            <Route path="/profile"             element={<AuthLayout><Profile /></AuthLayout>} />
+            <Route path="/budget"              element={<AuthLayout><Budget /></AuthLayout>} />
+            <Route path="/dana-darurat"        element={<AuthLayout><DanaDarurat /></AuthLayout>} />
+            <Route path="/zakat"               element={<AuthLayout><Zakat /></AuthLayout>} />
+            <Route path="/rutin"               element={<AuthLayout><RecurringTransactions /></AuthLayout>} />
+            <Route path="/hutang"              element={<AuthLayout><DebtLoans /></AuthLayout>} />
+            <Route path="/kesehatan"           element={<AuthLayout><FinancialLiteracy /></AuthLayout>} />
+            <Route path="/kalender"            element={<AuthLayout><FinancialCalendar /></AuthLayout>} />
+            <Route path="*"                    element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </Router>
+    </ToastProvider>
   );
 }
 export default App;

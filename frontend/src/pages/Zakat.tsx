@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Heart, Info, Calculator, ExternalLink, ShieldCheck } from 'lucide-react';
 import { bffService } from '../lib/services';
+import { useToast } from '../context/ToastContext';
+import Skeleton from '../components/Skeleton';
 
 const Zakat = () => {
+  const { showToast } = useToast();
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   
@@ -14,8 +17,9 @@ const Zakat = () => {
       try {
         const res = await bffService.getDashboardSummary();
         setBalance(res.data?.summary?.balance || 0);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        showToast('Gagal memuat saldo terbaru', 'error');
       } finally {
         setLoading(false);
       }
@@ -44,7 +48,7 @@ const Zakat = () => {
           </div>
           
           <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem' }}>
-            {loading ? <span>...</span> : <span>Rp{(balance || 0).toLocaleString('id-ID')}</span>}
+            {loading ? <Skeleton width="200px" height="2.5rem" /> : <span>Rp{(balance || 0).toLocaleString('id-ID')}</span>}
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             <span>Berdasarkan total saldo bersih di Dashboard SakuCerdas Anda.</span>
@@ -79,7 +83,7 @@ const Zakat = () => {
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', color: isObligated ? 'white' : 'var(--text-muted)' }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem', opacity: 0.8 }}><span>Zakat yang Harus Ditunaikan</span></div>
             <div style={{ fontSize: '2.25rem', fontWeight: 900 }}>
-              {loading ? <span>...</span> : <span>Rp{(zakatAmount || 0).toLocaleString('id-ID')}</span>}
+              {loading ? <Skeleton width="150px" height="2.25rem" /> : <span>Rp{(zakatAmount || 0).toLocaleString('id-ID')}</span>}
             </div>
             {isObligated && (
               <p style={{ marginTop: '1rem', fontSize: '0.82rem', opacity: 0.9 }}>

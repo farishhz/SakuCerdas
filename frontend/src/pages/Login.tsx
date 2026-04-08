@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Wallet, AlertCircle } from 'lucide-react';
 import { authService } from '../lib/services';
+import { useToast } from '../context/ToastContext';
 
 const Login = () => {
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -26,13 +28,14 @@ const Login = () => {
       navigate('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Login gagal.';
+      let displayMsg = msg;
       if (msg.includes('Invalid login credentials')) {
-        setError('Email atau kata sandi salah.');
+        displayMsg = 'Email atau kata sandi salah.';
       } else if (msg.includes('Email not confirmed')) {
-        setError('Cek inbox email kamu untuk konfirmasi akun terlebih dahulu.');
-      } else {
-        setError(msg);
+        displayMsg = 'Cek inbox email kamu untuk konfirmasi akun.';
       }
+      setError(displayMsg);
+      showToast(displayMsg, 'error');
     } finally {
       setLoading(false);
     }

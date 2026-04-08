@@ -3,10 +3,36 @@ import { PiggyBank, Plus, AlertTriangle, CheckCircle, Trash2 } from 'lucide-reac
 import { bffService } from '../lib/services';
 import type { Budget as SupabaseBudget, Category } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
+import Skeleton from '../components/Skeleton';
+import { useToast } from '../context/ToastContext';
 
 type BudgetWithSpent = SupabaseBudget & { spent: number };
 
+const BudgetSkeleton = () => (
+  <div className="dashboard-grid">
+    {[1, 2, 3].map(i => (
+      <div key={i} className="glass-card" style={{ marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Skeleton width="2.5rem" height="2.5rem" borderRadius="0.75rem" />
+            <div>
+              <Skeleton width="120px" height="1rem" style={{ marginBottom: '0.4rem' }} />
+              <Skeleton width="180px" height="0.8rem" />
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+            <Skeleton width="80px" height="1.25rem" borderRadius="2rem" />
+            <Skeleton width="60px" height="0.8rem" style={{ marginTop: '0.4rem' }} />
+          </div>
+        </div>
+        <Skeleton width="100%" height="5px" borderRadius="10px" />
+      </div>
+    ))}
+  </div>
+);
+
 const Budget = () => {
+  const { showToast } = useToast();
   const [budgets, setBudgets] = useState<BudgetWithSpent[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,9 +80,10 @@ const Budget = () => {
       await bffService.createBudget({ category_id: selectedCatId, limit_amount: newLimit });
       setSelectedCatId(''); setNewLimit(500000); setModal(false);
       fetchAll();
-    } catch (err) {
+      showToast('Budget berhasil disimpan!', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal membuat budget (mungkin kategori ini sudah punya budget di bulan ini).');
+      showToast(err.message || 'Gagal membuat budget', 'error');
     } finally {
       setSaving(false);
     }
@@ -67,9 +94,10 @@ const Budget = () => {
     try {
       await bffService.deleteBudget(id);
       fetchAll();
+      showToast('Budget dihapus', 'info');
     } catch (err) {
       console.error(err);
-      alert('Gagal menghapus budget.');
+      showToast('Gagal menghapus budget', 'error');
     }
   };
 
@@ -88,7 +116,7 @@ const Budget = () => {
         </div>
 
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat budget...</div>
+          <BudgetSkeleton />
         ) : (
           <>
             <div className="dashboard-grid">

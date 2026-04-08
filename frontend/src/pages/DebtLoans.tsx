@@ -2,8 +2,37 @@ import { useState, useEffect } from 'react';
 import { CreditCard, Plus, Trash2, CheckCircle2, Clock, Wallet, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
+import Skeleton from '../components/Skeleton';
+import { useToast } from '../context/ToastContext';
+
+const DebtSkeleton = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    {[1, 2, 3].map(i => (
+      <div key={i} className="glass-card" style={{ padding: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Skeleton width="2.5rem" height="2.5rem" borderRadius="0.75rem" />
+            <div>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                <Skeleton width="100px" height="1.1rem" />
+                <Skeleton width="60px" height="1rem" borderRadius="1rem" />
+              </div>
+              <Skeleton width="140px" height="1.4rem" style={{ marginBottom: '0.4rem' }} />
+              <Skeleton width="180px" height="0.8rem" />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Skeleton width="2rem" height="2rem" borderRadius="0.5rem" />
+            <Skeleton width="2rem" height="2rem" borderRadius="0.5rem" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const DebtLoans = () => {
+  const { showToast } = useToast();
   const [debts, setDebts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,7 +64,7 @@ const DebtLoans = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.person_name || !formData.amount) return alert('Nama dan nominal wajib diisi!');
+    if (!formData.person_name || !formData.amount) return showToast('Nama dan nominal wajib diisi!', 'error');
 
     try {
       setSaving(true);
@@ -47,9 +76,10 @@ const DebtLoans = () => {
       setModalOpen(false);
       setFormData({ type: 'debt', person_name: '', amount: '', description: '', due_date: '' });
       fetchDebts();
-    } catch (err) {
+      showToast('Catatan pinjaman disimpan!', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal menyimpan data.');
+      showToast(err.message || 'Gagal menyimpan data', 'error');
     } finally {
       setSaving(false);
     }
@@ -69,8 +99,10 @@ const DebtLoans = () => {
     try {
       await bffService.deleteDebt(id);
       fetchDebts();
+      showToast('Catatan dihapus', 'info');
     } catch (err) {
       console.error(err);
+      showToast('Gagal menghapus', 'error');
     }
   };
 
@@ -113,7 +145,7 @@ const DebtLoans = () => {
         <div className="glass-card">
           <h3 style={{ marginBottom: '1.5rem', fontWeight: 700 }}>Daftar Pinjaman</h3>
           {loading ? (
-            <p>Memuat data...</p>
+            <DebtSkeleton />
           ) : debts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem 0' }}>
                <Wallet size={48} className="text-muted" style={{ opacity: 0.3, marginBottom: '1rem' }} />

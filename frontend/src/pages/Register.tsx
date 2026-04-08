@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Phone, Wallet, AlertCircle } from 'lucide-react';
 import { authService } from '../lib/services';
+import { useToast } from '../context/ToastContext';
 
 const Register = () => {
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [email, setEmail]       = useState('');
@@ -33,11 +35,12 @@ const Register = () => {
       navigate('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Pendaftaran gagal.';
+      let displayMsg = msg;
       if (msg.includes('already registered') || msg.includes('User already registered')) {
-        setError('Email ini sudah terdaftar. Silakan masuk.');
-      } else {
-        setError(msg);
+        displayMsg = 'Email ini sudah terdaftar. Silakan masuk.';
       }
+      setError(displayMsg);
+      showToast(displayMsg, 'error');
     } finally {
       setLoading(false);
     }

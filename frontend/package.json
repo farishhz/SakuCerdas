@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
     "@tanstack/react-query": "^5.96.2",
+    "canvas-confetti": "^1.9.4",
     "firebase": "^12.11.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -41,13 +43,21 @@
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "latest",
     "@rolldown/binding-win32-x64-msvc": "latest",
+    "lightningcss": "latest",
     "lightningcss-linux-x64-gnu": "latest",
-    "lightningcss-win32-x64-msvc": "latest",
-    "lightningcss": "latest"
+    "lightningcss-win32-x64-msvc": "latest"
   },
   "supportedArchitectures": {
-    "os": ["linux", "win32"],
-    "cpu": ["x64", "arm64"],
-    "libc": ["glibc"]
+    "os": [
+      "linux",
+      "win32"
+    ],
+    "cpu": [
+      "x64",
+      "arm64"
+    ],
+    "libc": [
+      "glibc"
+    ]
   }
 }

@@ -9,8 +9,10 @@ import { newsService } from '../lib/newsService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useToast } from '../context/ToastContext';
 
 const Dashboard = () => {
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [walletModalOpen, setWalletModalOpen] = useState(false);
@@ -57,7 +59,7 @@ const Dashboard = () => {
       setWalletModalOpen(false);
       setWalletName('');
       setWalletBalance('');
-      alert('Dompet baru berhasil ditambahkan!');
+      showToast('Dompet baru berhasil ditambahkan!', 'success');
     }
   });
 
@@ -65,18 +67,18 @@ const Dashboard = () => {
     mutationFn: (id: string) => bffService.deleteWallet(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
-      alert('Dompet berhasil dihapus.');
+      showToast('Dompet berhasil dihapus.', 'info');
     }
   });
 
   const handleNabungKilat = async () => {
-    if (!selectedTarget) return alert('Pilih target impian dulu ya!');
-    if (!nabungAmt || nabungAmt <= 0) return alert('Masukkan nominal yang valid!');
+    if (!selectedTarget) return showToast('Pilih target impian dulu ya!', 'info');
+    if (!nabungAmt || nabungAmt <= 0) return showToast('Masukkan nominal yang valid!', 'error');
 
     const current = Number(selectedTarget.current_amount);
     const target = Number(selectedTarget.target_amount);
     if (current + Number(nabungAmt) > target) {
-      return alert(`Oops! Tabungan kamu melebihi target. Sisa yang dibutuhkan hanya Rp${(target - current).toLocaleString('id-ID')}.`);
+      return showToast(`Oops! Tabungan kamu melebihi target. Sisa: Rp${(target - current).toLocaleString('id-ID')}`, 'error');
     }
 
     try {
@@ -87,7 +89,7 @@ const Dashboard = () => {
         note: 'Nabung Kilat from Dashboard'
       });
       
-      alert(`Berhasil nabung Rp${Number(nabungAmt).toLocaleString('id-ID')} untuk ${selectedTarget.name}!`);
+      showToast(`Berhasil nabung Rp${Number(nabungAmt).toLocaleString('id-ID')} untuk ${selectedTarget.name}!`, 'success');
       setModalOpen(false);
       setNabungAmt('');
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
@@ -98,7 +100,7 @@ const Dashboard = () => {
       }
     } catch (err: any) {
       console.error('Nabung kilat error:', err);
-      alert(err.message || 'Gagal nabung. Coba lagi.');
+      showToast(err.message || 'Gagal nabung. Coba lagi.', 'error');
     } finally {
       setSaving(false);
     }
@@ -168,7 +170,7 @@ const Dashboard = () => {
       console.log('PDF saved successfully.');
     } catch (err) {
       console.error('PDF Generation Error:', err);
-      alert('Gagal mencetak laporan. Cek konsol untuk detail.');
+      showToast('Gagal mencetak laporan.', 'error');
     }
   };
 
@@ -188,7 +190,7 @@ const Dashboard = () => {
   ];
 
   const handleCreateWallet = () => {
-    if (!walletName) return alert('Nama dompet harus diisi');
+    if (!walletName) return showToast('Nama dompet harus diisi', 'error');
     createWalletMutation.mutate({
       name: walletName,
       type: walletType,

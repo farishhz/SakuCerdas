@@ -4,6 +4,7 @@ import { bffService, authService } from '../lib/services';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import { supabase } from '../lib/supabase';
+import { useToast } from '../context/ToastContext';
 
 type ProfileData = {
   id: string;
@@ -24,6 +25,7 @@ type BadgeItem = {
 };
 
 const Profile = () => {
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [badges, setBadges] = useState<BadgeItem[]>([]);
@@ -81,10 +83,10 @@ const Profile = () => {
       await bffService.updateProfile(editName, editPhone);
       setProfile({ ...profile, full_name: editName, phone: editPhone });
       setProfileModal(false);
-      alert('Profil berhasil diperbarui!');
-    } catch (err) {
+      showToast('Profil berhasil diperbarui!', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal update profil');
+      showToast(err.message || 'Gagal update profil', 'error');
     } finally {
       setSaving(false);
     }
@@ -98,10 +100,10 @@ const Profile = () => {
       if (error) throw error;
       setPwModal(false);
       setEditPw('');
-      alert('Kata sandi berhasil diperbarui!');
-    } catch (err) {
+      showToast('Kata sandi berhasil diperbarui!', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Gagal update kata sandi');
+      showToast(err.message || 'Gagal update kata sandi', 'error');
     } finally {
       setSaving(false);
     }
@@ -111,11 +113,11 @@ const Profile = () => {
     try {
       setSaving(true);
       await authService.deleteAccount();
-      alert('Akun Anda telah berhasil dihapus. Sampai jumpa lagi!');
+      showToast('Akun Anda telah berhasil dihapus. Sampai jumpa lagi!', 'info');
       navigate('/login');
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Gagal menghapus akun');
+      showToast(err.message || 'Gagal menghapus akun', 'error');
     } finally {
       setSaving(false);
     }

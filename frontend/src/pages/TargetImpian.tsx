@@ -5,6 +5,9 @@ import type { Target } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
 import Skeleton from '../components/Skeleton';
 
+import { useToast } from '../context/ToastContext';
+import confetti from 'canvas-confetti';
+
 const TargetSkeleton = () => (
   <div className="dashboard-grid">
     {[1, 2, 3].map(i => (
@@ -32,6 +35,7 @@ const TargetSkeleton = () => (
 );
 
 const TargetImpian = () => {
+  const { showToast } = useToast();
   const [targets, setTargets]   = useState<Target[]>([]);
   const [loading, setLoading]   = useState(true);
   
@@ -49,6 +53,19 @@ const TargetImpian = () => {
       setLoading(true);
       const result = await bffService.getTargets();
       setTargets(result.data || []);
+      
+      // Check if any target just reached 100% (basic heuristic)
+      result.data?.forEach((t: Target) => {
+        if (t.current_amount >= t.target_amount && !t.is_completed) {
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#8B5CF6', '#22C55E', '#D946EF']
+          });
+          showToast(`Selamat! Target "${t.name}" tercapai! 🎉`, 'success');
+        }
+      });
     } catch (err) {
       console.error('Failed to fetch targets:', err);
     } finally {
@@ -75,9 +92,10 @@ const TargetImpian = () => {
       });
       setModal(false);
       fetchTargets();
+      showToast('Saldo tabungan ditambah!', 'success');
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Gagal menambah saldo');
+      showToast(err.message || 'Gagal menambah saldo', 'error');
     } finally {
       setSaving(false);
     }
