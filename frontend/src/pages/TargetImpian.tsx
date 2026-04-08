@@ -3,6 +3,33 @@ import { PlusCircle, Target as TargetIcon, CheckCircle, Trash2 } from 'lucide-re
 import { bffService } from '../lib/services';
 import type { Target } from '../lib/supabase';
 import CurrencyInput from '../components/CurrencyInput';
+import Skeleton from '../components/Skeleton';
+
+const TargetSkeleton = () => (
+  <div className="dashboard-grid">
+    {[1, 2, 3].map(i => (
+      <div key={i} className="glass-card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+          <div style={{ flex: 1 }}>
+            <Skeleton width="40%" height="0.7rem" style={{ marginBottom: '0.5rem' }} />
+            <Skeleton width="80%" height="1.2rem" style={{ marginBottom: '0.5rem' }} />
+            <Skeleton width="60%" height="0.8rem" />
+          </div>
+          <Skeleton width="2.5rem" height="2.5rem" borderRadius="0.75rem" />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <Skeleton width="20%" height="0.7rem" />
+          <Skeleton width="15%" height="0.7rem" />
+        </div>
+        <Skeleton width="100%" height="6px" borderRadius="10px" style={{ marginBottom: '1.5rem' }} />
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <Skeleton width="70%" height="2.2rem" borderRadius="0.6rem" />
+          <Skeleton width="30%" height="2.2rem" borderRadius="0.6rem" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const TargetImpian = () => {
   const [targets, setTargets]   = useState<Target[]>([]);
@@ -97,7 +124,7 @@ const TargetImpian = () => {
         </div>
 
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat target...</div>
+          <TargetSkeleton />
         ) : targets.length === 0 ? (
           <div className="glass-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
             <TargetIcon size={40} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />

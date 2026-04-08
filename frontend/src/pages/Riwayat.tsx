@@ -3,6 +3,40 @@ import { ArrowDownRight, ArrowUpRight, Plus, Trash2, Search, Calendar, FileText,
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
 import { bffService } from '../lib/services';
 import CurrencyInput from '../components/CurrencyInput';
+import Skeleton from '../components/Skeleton';
+
+const TableSkeleton = () => (
+  <div className="glass-card" style={{ overflowX: 'auto', marginTop: '1rem' }}>
+    <table className="data-table" style={{ width: '100%' }}>
+      <thead>
+        <tr>
+          <th style={{ padding: '1rem' }}><Skeleton width="100px" height="0.6rem" /></th>
+          <th style={{ padding: '1rem' }}><Skeleton width="80px" height="0.6rem" /></th>
+          <th style={{ padding: '1rem' }}><Skeleton width="60px" height="0.6rem" /></th>
+          <th style={{ padding: '1rem', textAlign: 'right' }}><Skeleton width="80px" height="0.6rem" style={{ marginLeft: 'auto' }} /></th>
+          <th style={{ width: '40px' }}></th>
+        </tr>
+      </thead>
+      <tbody>
+        {[1,2,3,4,5].map(i => (
+          <tr key={i}>
+            <td style={{ padding: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Skeleton width="2.5rem" height="2.5rem" borderRadius="0.75rem" />
+                <Skeleton width="150px" height="0.9rem" />
+              </div>
+            </td>
+            <td style={{ padding: '1rem' }}><Skeleton width="90px" height="1.25rem" borderRadius="2rem" /></td>
+            <td style={{ padding: '1rem' }}><Skeleton width="70px" height="0.8rem" /></td>
+            <td style={{ padding: '1rem', textAlign: 'right' }}><Skeleton width="110px" height="1rem" style={{ marginLeft: 'auto' }} /></td>
+            <td style={{ padding: '1rem' }}><Skeleton width="20px" height="20px" borderRadius="4px" /></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
 import StreakCelebration from '../components/StreakCelebration';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -292,7 +326,7 @@ const Riwayat = () => {
       </div>
 
       {loading ? (
-        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat transaksi...</div>
+        <TableSkeleton />
       ) : tab === 'list' ? (
         <div className="glass-card" style={{ overflowX: 'auto' }}>
           {filteredTransactions.length === 0 ? (

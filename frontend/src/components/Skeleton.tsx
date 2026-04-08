@@ -5,23 +5,25 @@ interface SkeletonProps {
   height?: string | number;
   borderRadius?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const Skeleton: React.FC<SkeletonProps> = ({ 
   width = '100%', 
   height = '1rem', 
   borderRadius = '0.5rem',
-  className = '' 
+  className = '',
+  style = {}
 }) => {
   return (
     <div 
-      className={`pulse-animate ${className}`}
+      className={`skeleton-shimmer ${className}`}
       style={{
         width,
         height,
         borderRadius,
-        background: 'rgba(139, 92, 246, 0.1)',
-        display: 'inline-block'
+        display: 'inline-block',
+        ...style
       }}
     />
   );

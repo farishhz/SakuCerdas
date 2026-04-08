@@ -22,15 +22,16 @@ const FinancialLiteracy = lazy(() => import('./pages/FinancialHealth'));
 const FinancialCalendar = lazy(() => import('./pages/FinancialCalendar'));
 
 const PageLoader = () => (
-  <div style={{
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    minHeight: '100vh', background: 'var(--bg)',
-  }}>
-    <div style={{
-      width: '32px', height: '32px', border: '2px solid rgba(139,92,246,0.1)',
-      borderTopColor: 'var(--purple)', borderRadius: '50%',
-      animation: 'spin 0.8s linear infinite',
-    }} />
+  <div className="premium-loader-container">
+    <div className="premium-loader-logo">
+      <img src="/logo.png" alt="SakuCerdas" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+    </div>
+    <div style={{ marginBottom: '1.5rem', fontWeight: 800, fontSize: '1.2rem' }} className="brand-title">
+      SakuCerdas
+    </div>
+    <div className="loader-progress-track">
+      <div className="loader-progress-bar"></div>
+    </div>
   </div>
 );
 
