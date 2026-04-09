@@ -23,17 +23,17 @@ Akses aplikasi secara langsung melalui tautan berikut:
 
 ---
 
-## 🖼️ Dokumentasi Visual (Mockup)
+## 🖼️ Dokumentasi Lengkap Proyek
 
-Lihat tampilan antarmuka (UI) SakuCerdas selengkapnya di:
-👉 **[Lihat Mockup & Screenshot Aplikasi](./docs/MOCKUP.md)**
+Akses seluruh dokumen pendukung proyek melalui tautan di bawah ini:
 
----
-
-## 🛠️ Panduan Instalasi & Penggunaan
-
-Untuk teknis instalasi secara detail (termasuk SQL Schema untuk Supabase), silakan baca:
-👉 **[Instruksi Lengkap Instalasi & Setup](./USAGE.md)**
+| Judul Dokumen | Deskripsi | Tautan |
+| :--- | :--- | :--- |
+| **Panduan Penggunaan** | Tutorial lengkap cara menggunakan seluruh fitur aplikasi. | 👉 **[GUIDELINE.md](./docs/GUIDELINE.md)** |
+| **Dataset & Sumber Data** | Penjelasan API, Skema Database, dan Metodologi Data. | 👉 **[DATASET.md](./docs/DATASET.md)** |
+| **Strategi Implementasi** | Rencana bisnis, Timeline, Budgeting, dan Resources. | 👉 **[STRATEGY.md](./docs/STRATEGY.md)** |
+| **Mockup & Visual** | Screenshot antarmuka aplikasi dan desain branding. | 👉 **[MOCKUP.md](./docs/MOCKUP.md)** |
+| **Setup Teknis** | Instruksi instalasi level developer dan SQL Schema. | 👉 **[USAGE.md](./USAGE.md)** |
 
 ---
 
