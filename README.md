@@ -4,14 +4,14 @@
 
 ---
 
-## 🔗 Live Demo
+## Live Demo
 
 Akses aplikasi secara langsung melalui tautan berikut:
 👉 **[https://sakucerdas.vercel.app](https://sakucerdas.vercel.app)**
 
 ---
 
-## 👥 Detail Anggota Tim Capstone (SakuCerdas)
+## Detail Anggota Tim Capstone (SakuCerdas)
 
 | No  | ID Cohort    | Nama                   | Email                              | Asal Sekolah   |
 | --- | ------------ | ---------------------- | ---------------------------------- | -------------- |
@@ -23,35 +23,35 @@ Akses aplikasi secara langsung melalui tautan berikut:
 
 ---
 
-## 🖼️ Dokumentasi Lengkap Proyek
+## Dokumentasi Lengkap Proyek
 
 Akses seluruh dokumen pendukung proyek melalui tautan di bawah ini:
 
 | Judul Dokumen | Deskripsi | Tautan |
 | :--- | :--- | :--- |
-| **Panduan Penggunaan** | Tutorial lengkap cara menggunakan seluruh fitur aplikasi. | 👉 **[GUIDELINE.md](./docs/GUIDELINE.md)** |
-| **Dataset & Sumber Data** | Penjelasan API, Skema Database, dan Metodologi Data. | 👉 **[DATASET.md](./docs/DATASET.md)** |
-| **Strategi Implementasi** | Rencana bisnis, Timeline, Budgeting, dan Resources. | 👉 **[STRATEGY.md](./docs/STRATEGY.md)** |
-| **Mockup & Visual** | Screenshot antarmuka aplikasi dan desain branding. | 👉 **[MOCKUP.md](./docs/MOCKUP.md)** |
-| **Setup Teknis** | Instruksi instalasi level developer dan SQL Schema. | 👉 **[USAGE.md](./USAGE.md)** |
+| **Panduan Penggunaan** | Tutorial lengkap cara menggunakan seluruh fitur aplikasi. | **[GUIDELINE.md](./docs/GUIDELINE.md)** |
+| **Dataset & Sumber Data** | Penjelasan API, Skema Database, dan Metodologi Data. | **[DATASET.md](./docs/DATASET.md)** |
+| **Strategi Implementasi** | Rencana bisnis, Timeline, Budgeting, dan Resources. | **[STRATEGY.md](./docs/STRATEGY.md)** |
+| **Mockup & Visual** | Screenshot antarmuka aplikasi dan desain branding. | **[MOCKUP.md](./docs/MOCKUP.md)** |
+| **Setup Teknis** | Instruksi instalasi level developer dan SQL Schema. | **[USAGE.md](./USAGE.md)** |
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
--   **📊 Dashboard Interaktif**: Ringkasan saldo, pemasukan, pengeluaran, dan berita ekonomi terbaru (GNews API).
--   **🎯 Target Impian**: Buat dan pantau progres tabungan untuk barang atau impian yang ingin dicapai.
--   **📈 Simulasi Investasi**: Kalkulator bunga majemuk visual untuk melihat pertumbuhan aset di masa depan.
--   **🛡️ Dana Darurat**: Hitung kebutuhan dana cadangan berdasarkan pengeluaran bulanan Anda.
--   **🕌 Zakat Maal**: Kalkulator zakat yang disesuaikan dengan harga emas terkini.
--   **📂 Riwayat Transaksi**: Lacak semua arus kas dengan filter kategori dan tanggal.
--   **🔄 Transaksi Rutin**: Kelola pengeluaran berlangganan dan biaya flat bulanan.
--   **💳 Hutang & Piutang**: Monitor catatan pinjaman dan piutang agar tidak terlewat.
--   **🌗 Tema Dinamis**: Mendukung mode *Dark*, *Sakucerdas (Brand Theme)*, dan *Auto*.
+-   **Dashboard Interaktif**: Ringkasan saldo, pemasukan, pengeluaran, dan berita ekonomi terbaru (GNews API).
+-   **Target Impian**: Buat dan pantau progres tabungan untuk barang atau impian yang ingin dicapai.
+-   **Simulasi Investasi**: Kalkulator bunga majemuk visual untuk melihat pertumbuhan aset di masa depan.
+-   **Dana Darurat**: Hitung kebutuhan dana cadangan berdasarkan pengeluaran bulanan Anda.
+-   **Zakat Maal**: Kalkulator zakat yang disesuaikan dengan harga emas terkini.
+-   **Riwayat Transaksi**: Lacak semua arus kas dengan filter kategori dan tanggal.
+-   **Transaksi Rutin**: Kelola pengeluaran berlangganan dan biaya flat bulanan.
+-   **Hutang & Piutang**: Monitor catatan pinjaman dan piutang agar tidak terlewat.
+-   **Tema Dinamis**: Mendukung mode Dark, Sakucerdas (Brand Theme), dan Auto.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 -   **Frontend**: React.js, Vite, TypeScript.
 -   **Backend**: Node.js, Express.
@@ -62,7 +62,7 @@ Akses seluruh dokumen pendukung proyek melalui tautan di bawah ini:
 
 ---
 
-## ⚙️ Instalasi & Penyiapan
+## Instalasi & Penyiapan
 
 ### 1. Prasyarat
 Pastikan Anda sudah menginstal:
@@ -99,7 +99,7 @@ VITE_GNEWS_API_KEY=YOUR_GNEWS_API_KEY
 
 ---
 
-## 🚀 Cara Menjalankan (Lokal)
+## Cara Menjalankan (Lokal)
 
 Anda dapat menjalankan kedua layanan dari folder utama (root) menggunakan perintah berikut:
 
@@ -116,7 +116,7 @@ Aplikasi akan berjalan di: `http://localhost:5173`
 
 ---
 
-## ☁️ Deployment (Vercel)
+## Deployment (Vercel)
 
 SakuCerdas sudah dikonfigurasi sebagai **Vercel Monorepo**. Untuk deploy:
 1. Hubungkan repository GitHub ke Vercel.
@@ -126,7 +126,7 @@ SakuCerdas sudah dikonfigurasi sebagai **Vercel Monorepo**. Untuk deploy:
 
 ---
 
-## 🛡️ Arsitektur BFF (Backend-For-Frontend)
+## Arsitektur BFF (Backend-For-Frontend)
 SakuCerdas menggunakan pola **BFF** untuk memisahkan logika bisnis dari antarmuka pengguna. Seluruh kalkulasi skor kesehatan finansial, pengelolaan target, dan pengolahan data transaksi diproses di server Node.js (Vercel Serverless Functions) sebelum dikirim ke frontend, sehingga performa aplikasi di sisi klien tetap ringan dan aman.
 
 ---

@@ -1,10 +1,10 @@
-# 📊 Informasi Dataset & Sumber Data - SakuCerdas
+# Informasi Dataset & Sumber Data - SakuCerdas
 
 Dokumen ini menjelaskan sumber data, metodologi perhitungan, dan struktur data yang digunakan dalam aplikasi **SakuCerdas**.
 
 ---
 
-## 🌍 1. Data Berita Ekonomi (Real-time)
+## 1. Data Berita Ekonomi (Real-time)
 SakuCerdas tidak menggunakan dataset berita statis. Kami mengintegrasikan **GNews API** untuk mengambil berita ekonomi secara real-time.
 - **Sumber**: [GNews.io](https://gnews.io/)
 - **Metode**: Pencarian berbasis kata kunci (*Business*, *Finance*, *Economy*) yang difilter khusus untuk wilayah Indonesia.
@@ -12,14 +12,14 @@ SakuCerdas tidak menggunakan dataset berita statis. Kami mengintegrasikan **GNew
 
 ---
 
-## 📁 2. Dataset Internal (Pre-defined Categories)
+## 2. Dataset Internal (Pre-defined Categories)
 Kami menggunakan dataset internal untuk kategori transaksi default guna mempermudah user dalam pengelompokan arus kas.
 - **Kategori Pemasukan**: Gaji, Hadiah, Investasi, Bonus.
 - **Kategori Pengeluaran**: Makan & Minum, Transportasi, Hiburan, Tabungan, Tagihan, Kesehatan.
 
 ---
 
-## 🧮 3. Metodologi Perhitungan (Logic Dataset)
+## 3. Metodologi Perhitungan (Logic Dataset)
 Algoritma perhitungan dalam aplikasi didasarkan pada standar finansial universal:
 
 ### A. Zakat Maal (Emas & Kekayaan)
@@ -38,7 +38,7 @@ Algoritma perhitungan dalam aplikasi didasarkan pada standar finansial universal
 
 ---
 
-## 🗄️ 4. Skema Database (Supabase / PostgreSQL)
+## 4. Skema Database (Supabase / PostgreSQL)
 
 SakuCerdas menggunakan database relasional PostgreSQL yang dikelola melalui Supabase. Berikut adalah rincian struktur tabel yang digunakan untuk menyimpan data pengguna secara terenkripsi dan terorganisir:
 

@@ -1,10 +1,10 @@
-# 🚀 Rencana Implementasi & Strategi Bisnis - SakuCerdas
+# Rencana Implementasi & Strategi Bisnis - SakuCerdas
 
 Dokumen ini menjelaskan strategi pengembangan dan rencana implementasi produk **SakuCerdas** untuk jangka menengah (6-12 bulan ke depan).
 
 ---
 
-## 📅 1. Timeline Pengembangan (Roadmap)
+## 1. Timeline Pengembangan (Roadmap)
 
 | Fase | Durasi | Fokus Utama | Target Output |
 | :--- | :--- | :--- | :--- |
@@ -15,7 +15,7 @@ Dokumen ini menjelaskan strategi pengembangan dan rencana implementasi produk **
 
 ---
 
-## 💰 2. Estimasi Anggaran (Budgeting)
+## 2. Estimasi Anggaran (Budgeting)
 
 Perkiraan biaya operasional bulanan untuk menjalankan SakuCerdas pada skala perusahaan rintisan (Startup):
 
@@ -29,7 +29,7 @@ Perkiraan biaya operasional bulanan untuk menjalankan SakuCerdas pada skala peru
 
 ---
 
-## 👥 3. Kebutuhan Sumber Daya (Resources)
+## 3. Kebutuhan Sumber Daya (Resources)
 
 Untuk mengembangkan SakuCerdas menjadi produk komersial, diperlukan tim inti:
 1. **1 Fullstack Developer**: Mengelola API Express dan integrasi Supabase.
@@ -39,7 +39,7 @@ Untuk mengembangkan SakuCerdas menjadi produk komersial, diperlukan tim inti:
 
 ---
 
-## 🛠️ 4. Alat & Tools Yang Diperlukan
+## 4. Alat & Tools Yang Diperlukan
 - **Development**: VS Code, Git/GitHub, Postman.
 - **Design**: Figma, Adobe Illustrator (Branding).
 - **Project Management**: Trello / Jira.
@@ -47,7 +47,7 @@ Untuk mengembangkan SakuCerdas menjadi produk komersial, diperlukan tim inti:
 
 ---
 
-## 🎯 5. Strategi Implementasi Bisnis
+## 5. Strategi Implementasi Bisnis
 - **Freemium Model**: Fitur dasar gratis, fitur premium (seperti AI Financial Report & Eksport Excel Tanpa Batas) berbayar.
 - **B2B Partnership**: Kerjasama dengan HRD perusahaan untuk menyediakan alat manajemen keuangan bagi karyawan.
 - **Gamifikasi**: Menggunakan sistem Level & Badge yang ada untuk meningkatkan retensi pengguna agar rajin mencatat keuangan.

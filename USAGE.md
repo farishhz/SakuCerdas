@@ -1,10 +1,10 @@
-# 📖 Panduan Penggunaan & Instalasi - SakuCerdas
+# Panduan Penggunaan & Instalasi - SakuCerdas
 
 Dokumen ini berisi panduan lengkap untuk memasang, mengonfigurasi, dan menjalankan proyek **SakuCerdas** di lingkungan lokal. Panduan ini disusun untuk membantu penguji/reviewer dalam melakukan verifikasi teknis.
 
 ---
 
-## 🛠️ Prasyarat (Prerequisites)
+## Prasyarat (Prerequisites)
 
 Sebelum memulai, pastikan perangkat Anda sudah terinstal:
 -   **Node.js** (Versi 18.0.0 atau lebih baru)
@@ -14,7 +14,7 @@ Sebelum memulai, pastikan perangkat Anda sudah terinstal:
 
 ---
 
-## 📥 Langkah Instalasi
+## Langkah Instalasi
 
 ### 1. Kloning Repositori
 ```bash
@@ -30,7 +30,7 @@ npm install
 
 ---
 
-## ⚙️ Konfigurasi Environment Variable
+## Konfigurasi Environment Variable
 
 Buat file `.env` di dalam direktori `frontend/` dan isi dengan variabel berikut:
 
@@ -53,7 +53,7 @@ VITE_APP_URL=http://localhost:5173
 
 ---
 
-## 🗄️ Setup Database (Supabase SQL)
+## Setup Database (Supabase SQL)
 
 Proyek ini menggunakan Supabase sebagai backend. Untuk menyiapkan database, buka **SQL Editor** di Dashboard Supabase Anda dan jalankan skrip berikut untuk membuat tabel-tabel yang diperlukan:
 
@@ -127,7 +127,7 @@ INSERT INTO categories (name, icon, type) VALUES
 
 ---
 
-## 🚀 Menjalankan Aplikasi
+## Menjalankan Aplikasi
 
 ### Mode Pengembangan (Development)
 ```bash
@@ -144,13 +144,13 @@ npm run preview
 
 ---
 
-## 🌐 Deployment (Dukungan Proxy)
+## Deployment (Dukungan Proxy)
 
 Aplikasi ini dilengkapi dengan **Vercel Serverless Function** untuk mengatasi masalah CORS saat memanggil GNews API di server produksi. Konfigurasi ini terletak di folder `frontend/api/` dan akan aktif secara otomatis jika di-deploy ke Vercel.
 
 ---
 
-## ❓ Troubleshooting
+## Troubleshooting
 
 -   **Error: Failed to fetch (GNews)**: Pastikan `VITE_GNEWS_API_KEY` Anda valid. Jika di lokal, pastikan adblocker tidak memblokir request ke `gnews.io`.
 -   **Supabase Auth Error**: Pastikan Anda sudah mengaktifkan fitur **Email Auth** di menu **Authentication > Providers** pada dashboard Supabase.
