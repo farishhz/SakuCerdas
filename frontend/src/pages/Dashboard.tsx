@@ -217,7 +217,7 @@ const Dashboard = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div>
             <div className="header-badge"><Zap size={12} /> Overview</div>
-            <h1>Halo, {isLoading ? <Skeleton width="120px" height="2rem" /> : data?.userName}! 👋</h1>
+            <h1><span>Halo, </span>{isLoading ? <Skeleton width="120px" height="2rem" /> : <span>{data?.userName}</span>}<span>! 👋</span></h1>
             <p>Ringkasan keuangan kamu per hari ini.</p>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -232,8 +232,8 @@ const Dashboard = () => {
             }}>
               <Flame size={20} color="#FFA500" fill="#FFA500" />
               <div>
-                <div style={{ fontSize: '1rem', fontWeight: 800, lineHeight: 1 }}>{isLoading ? '..' : data?.streak} Hari</div>
-                <div style={{ fontSize: '0.65rem', opacity: 0.8 }}>Saving Streak! 🔥</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, lineHeight: 1 }}>{isLoading ? '..' : <span>{data?.streak}</span>} <span>Hari</span></div>
+                <div style={{ fontSize: '0.65rem', opacity: 0.8 }}><span>Saving Streak! 🔥</span></div>
               </div>
             </div>
           </div>
@@ -245,11 +245,11 @@ const Dashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <div className="card-icon bg-white" style={{ width: '2rem', height: '2rem' }}><Award size={14} /></div>
               <div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>Level: {profileData?.level || 'Newbie'}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>{profileData?.xp || 0} XP Terkumpul</div>
+                <div style={{ fontSize: '0.88rem', fontWeight: 700 }}><span>Level: </span>{profileData?.level || <span>Newbie</span>}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}><span>{profileData?.xp || 0}</span> <span>XP Terkumpul</span></div>
               </div>
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>Target: {getXPProgress().next} XP</div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}><span>Target: </span><span>{getXPProgress().next}</span> <span>XP</span></div>
           </div>
           <div className="progress-container" style={{ height: '8px' }}>
             <div className="progress-fill" style={{ width: `${getXPProgress().pct}%` }} />
@@ -288,7 +288,7 @@ const Dashboard = () => {
                     {item.title}
                   </div>
                   <p className="text-muted" style={{ fontSize: '0.72rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    Sumber: {item.source.name}
+                    <span>Sumber: </span><span>{item.source.name}</span>
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--purple-light)', fontSize: '0.75rem', fontWeight: 700, marginTop: '0.2rem' }}>
                     Baca Berita <ArrowUpRight size={12} />
@@ -330,9 +330,9 @@ const Dashboard = () => {
                       </div>
                       <div className="progress-header" style={{ marginTop: '0.6rem' }}>
                         <span className="text-dim" style={{ fontSize: '0.8rem' }}>
-                          Rp{t.current_amount.toLocaleString('id-ID')} / Rp{t.target_amount.toLocaleString('id-ID')}
+                          <span>Rp</span><span>{t.current_amount.toLocaleString('id-ID')}</span> <span>/ Rp</span><span>{t.target_amount.toLocaleString('id-ID')}</span>
                         </span>
-                        <span style={{ fontWeight: 800, color: done ? 'var(--success)' : 'var(--purple-light)' }}>{pct}%</span>
+                        <span style={{ fontWeight: 800, color: done ? 'var(--success)' : 'var(--purple-light)' }}><span>{pct}</span>%</span>
                       </div>
                       <div className="progress-container" style={{ height: '6px' }}>
                         <div className={`progress-fill ${done ? 'success' : ''}`} style={{ width: `${pct}%` }} />
@@ -368,7 +368,7 @@ const Dashboard = () => {
                            {w.is_default && <CheckCircle2 size={12} className="text-success" />}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>Rp{w.balance.toLocaleString('id-ID')}</span>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 700 }}><span>Rp</span><span>{w.balance.toLocaleString('id-ID')}</span></span>
                           <button className="text-danger haptic-press" style={{ background: 'transparent' }} onClick={() => handleDeleteWallet(w.id, w.name)}>
                              <Trash2 size={14} />
                           </button>

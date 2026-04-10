@@ -110,7 +110,14 @@ const FinancialCalendar = () => {
     return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>{cells}</div>;
   };
 
-  const selectedDateStr = selectedDate.toISOString().split('T')[0];
+  const getLocalDateStr = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const selectedDateStr = getLocalDateStr(selectedDate);
   const selectedTransactions = transactions.filter(t => t.date.startsWith(selectedDateStr));
 
   return (

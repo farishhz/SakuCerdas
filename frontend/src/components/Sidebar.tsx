@@ -69,8 +69,8 @@ const Sidebar = () => {
       <div className="sidebar-user-card">
         <div className="sidebar-avatar">{getInitials(profile?.full_name)}</div>
         <div className="sidebar-user-info">
-          <p>{profile?.full_name || 'Pengguna Baru'}</p>
-          <p>{profile?.level || 'Newbie'}</p>
+          <p><span>{profile?.full_name || 'Pengguna Baru'}</span></p>
+          <p><span>{profile?.level || 'Newbie'}</span></p>
         </div>
       </div>
       <nav className="sidebar-nav">
