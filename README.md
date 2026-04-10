@@ -1,4 +1,4 @@
-# 🚀 SakuCerdas - Cerdas Kelola Keuanganmu
+# SakuCerdas - Cerdas Kelola Keuanganmu
 
 **SakuCerdas** adalah aplikasi manajemen keuangan pribadi yang dirancang untuk membantu pengguna dalam merencanakan masa depan finansial, menghitung zakat, hingga memantau berita ekonomi terkini secara real-time. Dengan antarmuka yang modern dan fitur yang lengkap, SakuCerdas menjadi asisten finansial terpercaya di saku Anda.
 
@@ -7,7 +7,7 @@
 ## Live Demo
 
 Akses aplikasi secara langsung melalui tautan berikut:
-👉 **[https://sakucerdas.vercel.app](https://sakucerdas.vercel.app)**
+--> **[https://sakucerdas.vercel.app](https://sakucerdas.vercel.app)**
 
 ---
 
