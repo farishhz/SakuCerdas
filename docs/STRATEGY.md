@@ -47,7 +47,17 @@ Untuk mengembangkan SakuCerdas menjadi produk komersial, diperlukan tim inti:
 
 ---
 
-## 5. Strategi Implementasi Bisnis
+## 5. Analisis SWOT
+| Komponen | Penjelasan |
+| :--- | :--- |
+| **Kekuatan (Strengths)** | Antarmuka premium modern, fitur sangat lengkap (Zakat, Dana Darurat, Investasi), arsitektur BFF yang stabil. |
+| **Kelemahan (Weaknesses)** | Ketergantungan pada input data manual karena belum ada integrasi atomatis dengan API bank lokal. |
+| **Peluang (Opportunities)** | Meningkatnya kesadaran finansial di Indonesia, potensi ekspansi ke pasar B2B (Corporate Payroll). |
+| **Ancaman (Threats)** | Persaingan ketat dengan aplikasi perbankan besar yang mulai memiliki fitur pengelola keuangan internal. |
+
+---
+
+## 6. Strategi Implementasi Bisnis
 - **Freemium Model**: Fitur dasar gratis, fitur premium (seperti AI Financial Report & Eksport Excel Tanpa Batas) berbayar.
 - **B2B Partnership**: Kerjasama dengan HRD perusahaan untuk menyediakan alat manajemen keuangan bagi karyawan.
 - **Gamifikasi**: Menggunakan sistem Level & Badge yang ada untuk meningkatkan retensi pengguna agar rajin mencatat keuangan.
