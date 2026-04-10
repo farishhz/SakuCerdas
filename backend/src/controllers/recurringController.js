@@ -15,9 +15,18 @@ export const getRecurring = async (req, res) => {
 
 export const createRecurring = async (req, res) => {
   try {
-    const { user, token, body: { name, amount, interval, next_due_date } } = req;
+    const { user, token, body: { description, amount, interval, next_date, type, category_id } } = req;
     const supabase = getSupabaseClient(token);
-    const { data, error } = await supabase.from('recurring_transactions').insert({ user_id: user.id, name, amount: Number(amount), interval, next_due_date, is_active: true }).select().single();
+    const { data, error } = await supabase.from('recurring_transactions').insert({ 
+      user_id: user.id, 
+      description, 
+      amount: Number(amount), 
+      interval, 
+      next_date, 
+      type, 
+      category_id, 
+      is_active: true 
+    }).select().single();
     if (error) throw error;
     await addXP(user.id, token, 10);
     res.json({ status: 'success', data });
