@@ -8,10 +8,10 @@ const Zakat = () => {
   const { showToast } = useToast();
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  
+
   const [goldPrice] = useState(1200000);
-  const nisab = goldPrice * 85; 
-  
+  const nisab = goldPrice * 85;
+
   useEffect(() => {
     const getBal = async () => {
       try {
@@ -46,7 +46,7 @@ const Zakat = () => {
             <div className="card-icon bg-dim"><Calculator size={18} /></div>
             <h3 style={{ fontWeight: 700 }}><span>Total Harta (Saldo Saat Ini)</span></h3>
           </div>
-          
+
           <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem' }}>
             {loading ? <Skeleton width="200px" height="2.5rem" /> : <span>Rp{(balance || 0).toLocaleString('id-ID')}</span>}
           </div>
@@ -65,14 +65,14 @@ const Zakat = () => {
                 <span>Rp{nisab.toLocaleString('id-ID')}</span>
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                <span>Asumsi harga emas: Rp{(goldPrice/1000).toLocaleString('id-ID')}rb/gr</span>
+                <span>Asumsi harga emas: Rp{(goldPrice / 1000).toLocaleString('id-ID')}rb/gr</span>
               </div>
             </div>
 
             <div>
               <div className="card-title"><span>Status Kewajiban</span></div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', padding: '0.35rem 0.75rem', borderRadius: '2rem', background: isObligated ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)', color: isObligated ? 'var(--success)' : 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
-                {isObligated && <ShieldCheck size={14}/>}
+                {isObligated && <ShieldCheck size={14} />}
                 <span>{isObligated ? 'Wajib Zakat' : 'Belum Mencapai Nisab'}</span>
               </div>
             </div>
@@ -112,7 +112,7 @@ const Zakat = () => {
             </ul>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button className="btn btn-ghost" style={{ justifyContent: 'center' }} onClick={() => window.open('https://baznas.go.id/zakatmaal', '_blank')}>
+            <button className="btn btn-ghost" style={{ justifyContent: 'center' }} onClick={() => window.open('https://baznas.go.id/zakat-mal', '_blank')}>
               <span>Baca Selengkapnya</span> <ExternalLink size={14} style={{ marginLeft: '0.5rem' }} />
             </button>
             <button className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => window.open('https://baznas.go.id/bayarzakat', '_blank')}>
