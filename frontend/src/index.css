@@ -610,6 +610,14 @@ select.input-field { appearance: none; cursor: pointer; }
   .calendar-cell span {
     font-size: 0.75rem !important;
   }
+  .modal-content {
+    padding: 1.25rem;
+    width: 95%;
+  }
+  .modal-content .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
 }
 
 /* Toast System */
