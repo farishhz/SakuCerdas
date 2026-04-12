@@ -83,11 +83,12 @@ Dokumen ini menjelaskan seluruh fitur yang tersedia dalam aplikasi **SakuCerdas*
 
 ---
 
-## 13. Kustomisasi Tema (UI/UX)
-- **Dark Mode**: Gunakan tema gelap untuk kenyamanan mata di malam hari.
-- **Sakucerdas Theme**: Gunakan tema brand khas SakuCerdas (Purple-Green Gradient).
-- **Auto Theme**: Mengikuti preferensi sistem operasi Anda.
+© 2026 **SakuCerdas - Smart Financial System**.
 
 ---
 
-© 2026 **SakuCerdas - Smart Financial System**.
+> [!TIP]
+> **Cara Export ke PDF:**
+> 1. Buka file `GUIDELINE.md` ini di editor markdown (seperti VS Code) atau viewer online.
+> 2. Gunakan shortcut `Ctrl + P` (atau `Cmd + P`) lalu pilih **"Save as PDF"** atau **"Print to PDF"**.
+> 3. Sertakan file PDF tersebut dalam berkas ZIP Anda sesuai ketentuan.

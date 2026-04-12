@@ -1,4 +1,4 @@
-# 🚀 SakuCerdas - Cerdas Kelola Keuanganmu
+# SakuCerdas - Cerdas Kelola Keuanganmu
 
 **SakuCerdas** adalah aplikasi manajemen keuangan pribadi yang dirancang untuk membantu pengguna dalam merencanakan masa depan finansial, menghitung zakat, hingga memantau berita ekonomi terkini secara real-time. Dengan antarmuka yang modern dan fitur yang lengkap, SakuCerdas menjadi asisten finansial terpercaya di saku Anda.
 
@@ -7,7 +7,7 @@
 ## Live Demo
 
 Akses aplikasi secara langsung melalui tautan berikut:
-👉 **[https://sakucerdas.vercel.app](https://sakucerdas.vercel.app)**
+--> **[https://sakucerdas.vercel.app](https://sakucerdas.vercel.app)**
 
 ---
 
@@ -30,6 +30,7 @@ Akses seluruh dokumen pendukung proyek melalui tautan di bawah ini:
 | Judul Dokumen | Deskripsi | Tautan |
 | :--- | :--- | :--- |
 | **Panduan Penggunaan** | Tutorial lengkap cara menggunakan seluruh fitur aplikasi. | **[GUIDELINE.md](./docs/GUIDELINE.md)** |
+| **Skema Database** | Script SQL untuk mereplikasi struktur tabel di Supabase. | **[setup_database.sql](./docs/setup_database.sql)** |
 | **Dataset & Sumber Data** | Penjelasan API, Skema Database, dan Metodologi Data. | **[DATASET.md](./docs/DATASET.md)** |
 | **Strategi Implementasi** | Rencana bisnis, Timeline, Budgeting, dan Resources. | **[STRATEGY.md](./docs/STRATEGY.md)** |
 | **Mockup & Visual** | Screenshot antarmuka aplikasi dan desain branding. | **[MOCKUP.md](./docs/MOCKUP.md)** |
@@ -48,6 +49,14 @@ Akses seluruh dokumen pendukung proyek melalui tautan di bawah ini:
 -   **Transaksi Rutin**: Kelola pengeluaran berlangganan dan biaya flat bulanan.
 -   **Hutang & Piutang**: Monitor catatan pinjaman dan piutang agar tidak terlewat.
 -   **Tema Dinamis**: Mendukung mode Dark, Sakucerdas (Brand Theme), dan Auto.
+
+---
+
+## Tautan Model ML (Machine Learning)
+
+> [!NOTE]
+> **Status: Not Applicable (Logic based System)**
+> Aplikasi SakuCerdas saat ini sepenuhnya didukung oleh logika bisnis finansial, perhitungan matematis (BFF), dan integrasi API pihak ketiga (GNews). Tidak ada model Machine Learning statis (seperti `.h5` atau `.tflite`) yang digunakan dalam versi ini. Seluruh algoritma (skor kesehatan, zakat, cicilan) diproses di sisi server (`backend/`).
 
 ---
 
@@ -78,7 +87,14 @@ cd SakuCerdas
 npm install
 ```
 
-### 3. Konfigurasi Environment Variable
+### 3. Penyiapan Database (Supabase)
+Aplikasi ini menggunakan Supabase sebagai penyedia database.
+1. Buat proyek baru di [Supabase](https://supabase.com/).
+2. Buka **SQL Editor** di dashboard Supabase Anda.
+3. Salin dan jalankan seluruh isi berkas **[setup_database.sql](./docs/setup_database.sql)**.
+4. Berkas tersebut akan membuat tabel-tabel yang diperlukan serta mengaktifkan kebijakan RLS (Row Level Security).
+
+### 4. Konfigurasi Environment Variable
 
 Daftarkan variabel berikut pada file `.env` masing-masing folder:
 

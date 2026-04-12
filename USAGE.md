@@ -22,29 +22,32 @@ git clone https://github.com/farishhz/SakuCerdas.git
 cd SakuCerdas
 ```
 
-### 2. Instalasi Dependensi Frontend
+### 2. Instalasi Dependensi (Root)
+Proyek ini menggunakan struktur monorepo sederhana. Instal dependensi untuk seluruh layanan dari folder utama:
 ```bash
-cd frontend
 npm install
 ```
+Perintah ini akan menginstal paket-paket yang diperlukan untuk `frontend` dan `backend`.
 
 ---
 
 ## Konfigurasi Environment Variable
 
-Buat file `.env` di dalam direktori `frontend/` dan isi dengan variabel berikut:
+Buat file `.env` di dalam direktori `frontend/` dan `backend/` serta isi dengan variabel berikut:
 
+**Frontend (`frontend/.env`):**
 ```env
-# Supabase Configuration
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
-
-# GNews API Configuration
 VITE_GNEWS_API_KEY=your-gnews-api-key
+VITE_SERVER_URL=http://localhost:8000/api
+```
 
-# App Configuration
-VITE_APP_NAME=SakuCerdas
-VITE_APP_URL=http://localhost:5173
+**Backend (`backend/.env`):**
+```env
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+PORT=8000
 ```
 
 > **Catatan**: 
@@ -53,94 +56,25 @@ VITE_APP_URL=http://localhost:5173
 
 ---
 
-## Setup Database (Supabase SQL)
-
-Proyek ini menggunakan Supabase sebagai backend. Untuk menyiapkan database, buka **SQL Editor** di Dashboard Supabase Anda dan jalankan skrip berikut untuk membuat tabel-tabel yang diperlukan:
-
-```sql
--- 1. Tabel Profiles (User Data)
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-  full_name TEXT,
-  phone TEXT,
-  avatar_url TEXT,
-  xp INTEGER DEFAULT 0,
-  level TEXT DEFAULT 'Newbie',
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 2. Tabel Categories (Transaction Categories)
-CREATE TABLE categories (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  icon TEXT,
-  type TEXT CHECK (type IN ('income', 'expense'))
-);
-
--- 3. Tabel Transactions
-CREATE TABLE transactions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users ON DELETE CASCADE,
-  type TEXT NOT NULL,
-  amount DECIMAL NOT NULL,
-  category_id UUID REFERENCES categories(id),
-  description TEXT,
-  date DATE DEFAULT CURRENT_DATE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 4. Tabel Targets (Saving Goals)
-CREATE TABLE targets (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  target_amount DECIMAL NOT NULL,
-  current_amount DECIMAL DEFAULT 0,
-  deadline DATE,
-  is_completed BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 5. Tabel Budgets
-CREATE TABLE budgets (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users ON DELETE CASCADE,
-  category_id UUID REFERENCES categories(id),
-  limit_amount DECIMAL NOT NULL,
-  period TEXT DEFAULT 'monthly',
-  month INTEGER,
-  year INTEGER,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Isian Kategori Default 
-INSERT INTO categories (name, icon, type) VALUES 
-('Gaji', 'Wallet', 'income'),
-('Bonus', 'Gift', 'income'),
-('Investasi', 'TrendingUp', 'income'),
-('Makan & Minum', 'Utensils', 'expense'),
-('Transportasi', 'Car', 'expense'),
-('Hiburan', 'Film', 'expense'),
-('Tabungan', 'PiggyBank', 'expense');
-```
+Proyek ini menggunakan Supabase sebagai backend. Untuk menyiapkan database:
+1. Buka **SQL Editor** di Dashboard Supabase Anda.
+2. Salin dan jalankan seluruh isi berkas **[docs/setup_database.sql](./docs/setup_database.sql)**.
+3. Berkas tersebut mencakup seluruh skema tabel (`transactions`, `targets`, `wallets`, dll) serta kebijakan **RLS (Row Level Security)** untuk keamanan data.
 
 ---
 
 ## Menjalankan Aplikasi
 
-### Mode Pengembangan (Development)
+### 1. Jalankan Backend
 ```bash
-# Di dalam folder frontend
-npm run dev
+npm run dev:back
 ```
-Aplikasi akan berjalan di `http://localhost:5173`.
 
-### Mode Produksi (Build)
+### 2. Jalankan Frontend (Tab Baru)
 ```bash
-npm run build
-npm run preview
+npm run dev:front
 ```
+Aplikasi akan berjalan di `http://localhost:5173`. Perintah di atas dijalankan dari folder root proyek.
 
 ---
 
